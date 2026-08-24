@@ -3,10 +3,12 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "description": "A React + Vite application with Capacitor for cross-platform mobile development",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "android": "npx cap sync android && npx cap open android"
   },
   "dependencies": {
     "react": "^18.3.1",
