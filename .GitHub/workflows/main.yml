@@ -1,0 +1,54 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Set up Java (needed for Android builds)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build the web app
+        run: npm run build
+
+      - name: Add the Android platform
+        run: npx cap add android
+
+      - name: Sync web build into the Android project
+        run: npx cap sync android
+
+      - name: Build a debug APK
+        working-directory: android
+        run: chmod +x gradlew && ./gradlew assembleDebug
+
+      - name: Rename the APK so every build is uniquely identifiable
+        run: |
+          mkdir -p renamed
+          cp android/app/build/outputs/apk/debug/app-debug.apk "renamed/omerta-${{ github.run_number }}-$(date +%Y%m%d-%H%M).apk"
+
+      - name: Upload the APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: omerta-build-${{ github.run_number }}
+          path: renamed/*.apk
