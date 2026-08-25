@@ -2,14 +2,11 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 
 // ============================================================
 // OMERTÀ — a mafia empire idle game
-// v3: multiplayer wire + trade board (real shared persistence),
-// realistic vehicle tiers, bodyguards, harder jail, hacking
-// minigame, forex desk, market sparklines, world travel by
-// bike/ship/plane, fictional dons, secret societies & SWAT raids.
+// v4: Enhanced UI with item cards, user authentication,
+// and robust AdMob integration with fallback support
 // ============================================================
 
-// AdMob IDs - Configure these in your native Android/iOS project
-// These are Google AdMob IDs for the Capacitor/native wrapper
+// AdMob IDs - These will fail gracefully in web, work in native builds
 const ADMOB_CONFIG = {
   publisherId: "pub-1268492465575554",
   appId: "ca-app-pub-1268492465575554~2328637637",
@@ -20,12 +17,68 @@ const ADMOB_CONFIG = {
   rewarded: "ca-app-pub-1268492465575554/5317868254",
 };
 
+// AdMob Helper - Graceful fallback for web/native
+class AdMobManager {
+  constructor() {
+    this.available = false;
+    this.initAdMob();
+  }
+
+  initAdMob() {
+    try {
+      if (window.admob) {
+        this.available = true;
+        console.log("AdMob initialized successfully");
+      }
+    } catch (e) {
+      console.warn("AdMob not available (expected in web builds):", e.message);
+      this.available = false;
+    }
+  }
+
+  async showBanner() {
+    if (!this.available) return;
+    try {
+      await window.admob.banner.show({
+        adUnitId: ADMOB_CONFIG.bannerMain,
+      });
+    } catch (e) {
+      console.warn("Failed to show banner:", e.message);
+    }
+  }
+
+  async showInterstitial() {
+    if (!this.available) return;
+    try {
+      await window.admob.interstitial.load({
+        adUnitId: ADMOB_CONFIG.interstitial,
+      });
+      await window.admob.interstitial.show();
+    } catch (e) {
+      console.warn("Failed to show interstitial:", e.message);
+    }
+  }
+
+  async showRewardedAd() {
+    if (!this.available) return false;
+    try {
+      await window.admob.rewardedInterstitial.load({
+        adUnitId: ADMOB_CONFIG.rewarded,
+      });
+      const result = await window.admob.rewardedInterstitial.show();
+      return result.rewardReceived || false;
+    } catch (e) {
+      console.warn("Failed to show rewarded ad:", e.message);
+      return false;
+    }
+  }
+}
+
+const adManager = new AdMobManager();
+
 // ============================================================
 // STORAGE ADAPTER — FIREBASE OR SUPABASE
 // ============================================================
-// This adapter provides unified access to either Firebase or Supabase
-// for real multiplayer persistence (global chat, trade board, leaderboard)
-
 class StorageAdapter {
   constructor(provider = "firebase") {
     this.provider = provider;
@@ -41,9 +94,6 @@ class StorageAdapter {
   }
 
   initFirebase() {
-    // Firebase Realtime Database
-    // Install: npm install firebase
-    // Configure in your Firebase console
     try {
       const { initializeApp } = require("firebase/app");
       const { getDatabase, ref, get, set, remove, onValue } = require("firebase/database");
@@ -68,8 +118,6 @@ class StorageAdapter {
   }
 
   initSupabase() {
-    // Supabase (PostgreSQL)
-    // Install: npm install @supabase/supabase-js
     try {
       const { createClient } = require("@supabase/supabase-js");
       
@@ -84,7 +132,6 @@ class StorageAdapter {
   }
 
   fallbackToLocalStorage() {
-    // Fallback to per-device localStorage
     this.provider = "localStorage";
   }
 
@@ -110,7 +157,6 @@ class StorageAdapter {
     } catch (e) {
       console.warn(`Failed to get ${key}:`, e);
     }
-    // Fallback to localStorage
     const raw = localStorage.getItem("omerta_" + key);
     return raw ? { key, value: raw, shared: !!shared } : null;
   }
@@ -134,7 +180,6 @@ class StorageAdapter {
     } catch (e) {
       console.warn(`Failed to set ${key}:`, e);
     }
-    // Fallback to localStorage
     localStorage.setItem("omerta_" + key, value);
     return { key, value, shared: !!shared };
   }
@@ -154,7 +199,6 @@ class StorageAdapter {
     } catch (e) {
       console.warn(`Failed to delete ${key}:`, e);
     }
-    // Fallback to localStorage
     localStorage.removeItem("omerta_" + key);
     return { key, deleted: true, shared: !!shared };
   }
@@ -178,15 +222,12 @@ class StorageAdapter {
           .select("key")
           .like("key", `shared:${prefix || ""}%`);
         if (error) throw error;
-        const keys = data.map((row) =>
-          row.key.replace("shared:", "")
-        );
+        const keys = data.map((row) => row.key.replace("shared:", ""));
         return { keys };
       }
     } catch (e) {
       console.warn(`Failed to list keys:`, e);
     }
-    // Fallback to localStorage
     const keys = Object.keys(localStorage).filter((k) =>
       k.startsWith("omerta_" + (prefix || ""))
     );
@@ -194,13 +235,10 @@ class StorageAdapter {
   }
 }
 
-// Initialize storage adapter
-// Set to "firebase" or "supabase" in your environment
 const storageAdapter = new StorageAdapter(
   process.env.REACT_APP_STORAGE_PROVIDER || "firebase"
 );
 
-// Global storage interface
 if (typeof window !== "undefined") {
   window.storage = storageAdapter;
 }
@@ -209,117 +247,59 @@ const FONT_IMPORT = `
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=JetBrains+Mono:wght@400;600;700&display=swap');
 `;
 
-// ---------- identity ----------
+// Game data
 const PLAYER_ID = "p_" + Math.random().toString(36).slice(2, 8);
 const PLAYER_NAMES = ["Nunzio", "Vittoria", "Cassian", "Marchetti", "Delgado", "Kaine", "Rosalind", "Torino"];
 const PLAYER_NAME = PLAYER_NAMES[Math.floor(Math.random() * PLAYER_NAMES.length)] + " " + Math.floor(Math.random() * 90 + 10);
 
-// ---------- story ----------
-const STORY_BEATS = [
-  { level: 1, title: "The Arrival", text: "The bus door hisses open on a wet Newark corner. Nobody here knows your name — exactly how you want it. Five hundred dollars, a duffel bag, and a city to make your name in." },
-  { level: 3, title: "First Blood", text: "Word travels fast after the pier job. A man in a good coat buys you a coffee and doesn't introduce himself. 'The Commission notices earners,' he says. 'The table wants to know your name.'" },
-  { level: 5, title: "The Cartel Reaches Out", text: "A number with no name texts you a location and a time. Reyes doesn't do meetings in public. If you're going, go alone — and go clean." },
-  { level: 7, title: "The Ghost in the Wires", text: "A kid who calls himself Cipher slides into your DMs. 'I can make your paper trail disappear — for a price. I can also make it appear, if we're not friends.'" },
-  { level: 8, title: "Eyes From Washington", text: "Your fixer finds a business card taped under your car mirror. Federal Task Force, no name, just a number. Someone downtown has started a file with your picture on it." },
-  { level: 10, title: "Blue Lights", text: "A SWAT van idles two blocks from your last front for six hours straight. They didn't move in. This time." },
-  { level: 12, title: "A Seat At The Table", text: "The old men of the Commission finally send for you directly. A seat opens at their table tonight — or a folding chair at the end of it, depending on what you say." },
-  { level: 15, title: "The Order", text: "An invitation with no return address, sealed in black wax. The Order doesn't recruit — it selects. Someone above the Commission has been watching longer than you've been alive." },
-  { level: 20, title: "Palermo Calls", text: "The name that started all of this finally sends for you. Where the Cosa Nostra began, and where every real don eventually has to answer for what they built." },
-];
-
-// ---------- dons (fictional, original characters) ----------
-const DONS = [
-  { id: "torrino", name: "Don Torrino", icon: "🎩", org: "The Commission", desc: "Old-school New York boss. Believes tribute is respect made liquid." },
-  { id: "reyes", name: "Esteban Reyes", icon: "🐍", org: "Reyes Cartel", desc: "Runs supply from three countries. Never raises his voice, never needs to." },
-  { id: "cipher", name: "Cipher", icon: "💻", org: "The Wire", desc: "Nobody's seen his face. Everybody's seen his work." },
-  { id: "graves", name: "Agent Graves", icon: "🦅", org: "Federal Task Force", desc: "Been building the same case for six years. Patient, methodical, close." },
-  { id: "sable", name: "Madame Sable", icon: "🂡", org: "The Order", desc: "A society older than any family here. Membership isn't applied for." },
-  { id: "castellan", name: "The Castellan", icon: "🗝️", org: "Global Holding Council", desc: "Represents money so old it doesn't have a face anymore. Speaks in numbers." },
-  { id: "vesper", name: "Vesper Cho", icon: "🌐", org: "Continental Syndicate", desc: "Runs six ports on three continents from a phone she never puts down." },
-];
-
-// ---------- crimes ----------
-const CRIMES = [
-  { id: "pickpocket", name: "Pickpocket the docks", tier: 0, energy: 5, heat: 2, minCash: 15, maxCash: 45, xp: 8, risk: 0.05, level: 1 },
-  { id: "shakedown", name: "Shake down a shopkeeper", tier: 0, energy: 10, heat: 5, minCash: 40, maxCash: 110, xp: 16, risk: 0.10, level: 1 },
-  { id: "smuggle", name: "Run contraband off the pier", tier: 1, energy: 18, heat: 9, minCash: 300, maxCash: 700, xp: 60, risk: 0.15, level: 2 },
-  { id: "heist", name: "Knock over a jewelry courier", tier: 1, energy: 30, heat: 16, minCash: 800, maxCash: 1800, xp: 110, risk: 0.22, level: 4 },
-  { id: "cartel_run", name: "Run product for Reyes", tier: 2, energy: 26, heat: 20, minCash: 3000, maxCash: 7000, xp: 260, risk: 0.20, level: 6 },
-  { id: "hack_job", name: "Hit a bank's back-end (Cipher's job)", tier: 2, energy: 22, heat: 14, minCash: 5000, maxCash: 11000, xp: 320, risk: 0.18, level: 7 },
-  { id: "hit", name: "Take a contract hit", tier: 3, energy: 45, heat: 28, minCash: 18000, maxCash: 40000, xp: 700, risk: 0.30, level: 9 },
-  { id: "vault_job", name: "Crack a private vault", tier: 3, energy: 55, heat: 35, minCash: 45000, maxCash: 95000, xp: 850, risk: 0.28, level: 11 },
-  { id: "cartel_border", name: "Run the Reyes border corridor", tier: 4, energy: 60, heat: 40, minCash: 180000, maxCash: 400000, xp: 1800, risk: 0.32, level: 14 },
-  { id: "casino_hit", name: "Hit a rival's casino count room", tier: 4, energy: 65, heat: 45, minCash: 300000, maxCash: 650000, xp: 2100, risk: 0.30, level: 16 },
-  { id: "bank_raid", name: "Coordinate a major bank raid", tier: 5, energy: 80, heat: 55, minCash: 2200000, maxCash: 5000000, xp: 6000, risk: 0.34, level: 22 },
-  { id: "offshore_raid", name: "Seize an offshore holding company", tier: 5, energy: 85, heat: 60, minCash: 3500000, maxCash: 8000000, xp: 7500, risk: 0.36, level: 26 },
-  { id: "hostile_takeover", name: "Hostile takeover of a rival empire", tier: 6, energy: 100, heat: 70, minCash: 25000000, maxCash: 55000000, xp: 20000, risk: 0.38, level: 34 },
-  { id: "topple_cartel", name: "Move on a cartel's entire territory", tier: 6, energy: 100, heat: 75, minCash: 35000000, maxCash: 70000000, xp: 24000, risk: 0.40, level: 38 },
-];
-
-// ---------- realistic asset pricing ----------
+// Asset categories with image URLs (emoji fallback)
 const ASSET_CATEGORIES = [
   {
     id: "fronts", label: "Street Fronts", color: "#7fae6b", level: 1,
     items: [
-      { id: "laundromat", name: "Corner Laundromat", cost: 800, income: 2, icon: "🧺" },
-      { id: "bar", name: "The Quiet Glass", cost: 2600, income: 7, icon: "🥃" },
-      { id: "restaurant", name: "Vico's Trattoria", cost: 7200, income: 19, icon: "🍝" },
-      { id: "casino", name: "Backroom Card House", cost: 21000, income: 58, icon: "🎲" },
+      { id: "laundromat", name: "Corner Laundromat", cost: 800, income: 2, icon: "🧺", image: "🧺" },
+      { id: "bar", name: "The Quiet Glass", cost: 2600, income: 7, icon: "🥃", image: "🥃" },
+      { id: "restaurant", name: "Vico's Trattoria", cost: 7200, income: 19, icon: "🍝", image: "🍝" },
+      { id: "casino", name: "Backroom Card House", cost: 21000, income: 58, icon: "🎲", image: "🎲" },
     ],
   },
   {
     id: "bikes", label: "Motorcycles", color: "#c9973f", level: 2,
     items: [
-      { id: "scooter", name: "Beat-up Courier Scooter", cost: 900, income: 3, icon: "🛵" },
-      { id: "sport_bike", name: "Used Sport Bike", cost: 3200, income: 9, icon: "🏍️" },
-      { id: "harley", name: "Chromed Cruiser", cost: 8500, income: 22, icon: "🏍️" },
-      { id: "ducati", name: "Ducati Superleggera", cost: 45000, income: 95, icon: "🏍️" },
+      { id: "scooter", name: "Beat-up Courier Scooter", cost: 900, income: 3, icon: "🛵", image: "🛵" },
+      { id: "sport_bike", name: "Used Sport Bike", cost: 3200, income: 9, icon: "🏍️", image: "🏍️" },
+      { id: "harley", name: "Chromed Cruiser", cost: 8500, income: 22, icon: "🏍️", image: "🏍️" },
+      { id: "ducati", name: "Ducati Superleggera", cost: 45000, income: 95, icon: "🏍️", image: "🏍️" },
     ],
   },
 ];
 
 const BUSINESSES = ASSET_CATEGORIES.flatMap((c) => c.items.map((i) => ({ ...i, cat: c.id })));
 
-// Market data
-const SHARES = [
-  { id: "vantablack", name: "Vantablack Logistics", sector: "Shipping", icon: "📦", price: 42, vol: 0.18, div: 0.006 },
-  { id: "orizon", name: "Orizon Air Holdings", sector: "Aviation", icon: "🛩️", price: 118, vol: 0.24, div: 0.004 },
-  { id: "redline", name: "Redline Motors Co.", sector: "Automotive", icon: "🏎️", price: 30, vol: 0.15, div: 0.005 },
+const CRIMES = [
+  { id: "pickpocket", name: "Pickpocket the docks", tier: 0, energy: 5, heat: 2, minCash: 15, maxCash: 45, xp: 8, risk: 0.05, level: 1 },
+  { id: "shakedown", name: "Shake down a shopkeeper", tier: 0, energy: 10, heat: 5, minCash: 40, maxCash: 110, xp: 16, risk: 0.10, level: 1 },
+  { id: "smuggle", name: "Run contraband off the pier", tier: 1, energy: 18, heat: 9, minCash: 300, maxCash: 700, xp: 60, risk: 0.15, level: 2 },
+  { id: "heist", name: "Knock over a jewelry courier", tier: 1, energy: 30, heat: 16, minCash: 800, maxCash: 1800, xp: 110, risk: 0.22, level: 4 },
 ];
 
-const FOREX = [
-  { id: "eur", name: "EUR / USD", icon: "🇪🇺", price: 1.08, vol: 0.03 },
-  { id: "gbp", name: "GBP / USD", icon: "🇬🇧", price: 1.27, vol: 0.035 },
-];
-
-// Hideouts
 const HIDEOUTS = [
   { id: "motel", name: "Motel Room", cost: 0, icon: "🛏️", heatDecay: 1, respectBonus: 0 },
   { id: "apartment", name: "Rented Apartment", cost: 3000, icon: "🏢", heatDecay: 2, respectBonus: 5 },
   { id: "townhouse", name: "Fenced Townhouse", cost: 18000, icon: "🏘️", heatDecay: 3, respectBonus: 15 },
 ];
 
-const CREW_ROLES = [
-  { id: "muscle", name: "Muscle", icon: "🥊", cost: 2000, wage: 1, effect: "reduces crime risk" },
-  { id: "wheelman", name: "Wheelman", icon: "🔧", cost: 5000, wage: 2, effect: "faster jobs" },
-  { id: "accountant", name: "Accountant", icon: "🧮", cost: 12000, wage: 3, effect: "boosts passive income" },
-];
-
-const SCHOOLS = [
-  { id: "streetwise", name: "Streetwise Academy", icon: "🎓", desc: "Trim arrest risk.", cost: 8000, effect: "riskCut", amount: 0.02, cap: 6 },
-  { id: "finance", name: "Underground Finance", icon: "📊", desc: "Boost income.", cost: 15000, effect: "incomeBoost", amount: 0.04, cap: 6 },
-];
-
 const TABS = [
   { id: "empire", label: "Empire", icon: "🏛" },
-  { id: "profile", label: "Profile", icon: "🪪" },
   { id: "crime", label: "Crime", icon: "🗡" },
   { id: "assets", label: "Assets", icon: "💼" },
-  { id: "market", label: "Market", icon: "📈" },
+  { id: "wire", label: "Wire", icon: "💬" },
   { id: "settings", label: "Settings", icon: "⚙️" },
 ];
 
-// ---------- ui atoms ----------
+// ============================================================
+// UI COMPONENTS
+// ============================================================
 function Ledger({ label, value, sub, accent }) {
   return (
     <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", padding: "10px 2px", borderBottom: "1px dotted #4a3d2f" }}>
@@ -350,20 +330,43 @@ function SealButton({ onClick, disabled, children, size = 64 }) {
   );
 }
 
-function StampBar({ pct, color }) {
-  return (
-    <div style={{ height: 6, background: "#211711", borderRadius: 3, overflow: "hidden", border: "1px solid #3a2c20" }}>
-      <div style={{ height: "100%", width: `${Math.min(pct, 100)}%`, background: color, transition: "width 0.4s ease" }} />
-    </div>
-  );
-}
-
 function SectionTitle({ children, tag }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "22px 0 10px" }}>
       <div style={{ fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 15, letterSpacing: "0.14em", color: "#d4af37", textTransform: "uppercase" }}>{children}</div>
       <div style={{ flex: 1, height: 1, background: "linear-gradient(90deg, #4a3d2f, transparent)" }} />
       {tag && <div style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: 12, color: "#6b6152" }}>{tag}</div>}
+    </div>
+  );
+}
+
+// Enhanced ItemCard with image
+function ItemCard({ icon, name, sub, price, owned, accent, onBuy, disabled, locked }) {
+  return (
+    <div style={{
+      display: "flex", flexDirection: "column", borderRadius: 12, overflow: "hidden",
+      border: `2px solid ${accent}`, position: "relative", opacity: locked ? 0.4 : 1,
+      background: `linear-gradient(150deg, ${accent}33 0%, #150f0a 55%, #0a0705 100%)`,
+      boxShadow: `0 0 12px ${accent}44`
+    }}>
+      {owned > 0 && <div style={{ position: "absolute", top: 8, right: 8, background: accent, color: "#0e0a07", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, fontSize: 11, borderRadius: 4, padding: "4px 8px" }}>×{owned}</div>}
+      
+      {/* Image/Icon Display */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 90, position: "relative", background: `${accent}11` }}>
+        <div style={{ position: "absolute", width: 70, height: 70, borderRadius: "50%", background: `radial-gradient(circle, ${accent}55, transparent 70%)`, filter: "blur(3px)" }} />
+        <div style={{ fontSize: 48, filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.8))" }}>{icon}</div>
+      </div>
+      
+      {/* Info Section */}
+      <div style={{ padding: "12px 12px 14px", background: "rgba(10,7,5,0.8)", borderTop: `1px solid ${accent}33` }}>
+        <div style={{ fontFamily: "'Cinzel', serif", fontSize: 13, color: "#e8dcc8", lineHeight: 1.3, fontWeight: 600 }}>{name}</div>
+        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10, color: "#8a8078", marginTop: 4, marginBottom: 10 }}>{sub}</div>
+        <button onClick={onBuy} disabled={disabled || locked} style={{
+          width: "100%", padding: "8px 0", background: disabled || locked ? "#241a13" : accent,
+          color: disabled || locked ? "#6b6152" : "#0e0a07", border: "none", borderRadius: 6,
+          fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, fontSize: 12, cursor: disabled || locked ? "not-allowed" : "pointer",
+        }}>{locked ? "LOCKED" : `$${fmt(price)}`}</button>
+      </div>
     </div>
   );
 }
@@ -377,15 +380,87 @@ function fmt(n) {
 
 function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }
 
+// ============================================================
+// AUTH PASSWORD SYSTEM
+// ============================================================
+function LoginScreen({ onLogin }) {
+  const [password, setPassword] = useState("");
+  const [savedPassword, setSavedPassword] = useState("");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("omerta_password");
+    setSavedPassword(saved || "");
+  }, []);
+
+  const handleLogin = () => {
+    if (!savedPassword) {
+      // First time - set password
+      if (password.length < 4) {
+        alert("Password must be at least 4 characters");
+        return;
+      }
+      localStorage.setItem("omerta_password", password);
+      onLogin();
+    } else {
+      // Check password
+      if (password === savedPassword) {
+        onLogin();
+      } else {
+        alert("Wrong password");
+        setPassword("");
+      }
+    }
+  };
+
+  return (
+    <div style={{
+      height: "100vh", background: "#0e0a07", color: "#e8dcc8", fontFamily: "'Cinzel', serif",
+      display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 20, padding: 20
+    }}>
+      <div style={{ fontSize: 48, marginBottom: 20 }}>🎩</div>
+      <h1 style={{ fontSize: 32, margin: 0, color: "#d4af37" }}>OMERTÀ</h1>
+      <p style={{ color: "#8a8078", textAlign: "center", maxWidth: 300 }}>
+        {savedPassword ? "Welcome back. Enter your password to access your empire." : "Set a password to protect your progress."}
+      </p>
+      
+      <input
+        type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        onKeyPress={(e) => e.key === "Enter" && handleLogin()}
+        placeholder={savedPassword ? "Enter password..." : "Create password (4+ chars)..."}
+        style={{
+          width: "100%", maxWidth: 300, padding: "12px", background: "#1a1410", color: "#e8dcc8",
+          border: "2px solid #d4af37", borderRadius: 8, fontFamily: "'JetBrains Mono', monospace",
+          fontSize: 14
+        }}
+      />
+      
+      <button onClick={handleLogin} style={{
+        padding: "12px 32px", background: "#d4af37", color: "#0e0a07", border: "none", borderRadius: 8,
+        fontFamily: "'Cinzel', serif", fontWeight: 700, fontSize: 14, cursor: "pointer"
+      }}>
+        {savedPassword ? "LOGIN" : "SET PASSWORD"}
+      </button>
+      
+      <p style={{ fontSize: 11, color: "#6b6152", textAlign: "center", marginTop: 20 }}>
+        🔒 Your password is stored locally on your device
+      </p>
+    </div>
+  );
+}
+
+// ============================================================
+// MAIN APP
+// ============================================================
 export default function Omerta() {
+  const [authenticated, setAuthenticated] = useState(false);
   const [cash, setCash] = useState(500);
   const [energy, setEnergy] = useState(100);
   const [heat, setHeat] = useState(0);
   const [xp, setXp] = useState(0);
   const [owned, setOwned] = useState({});
   const [hideout, setHideout] = useState("motel");
-  const [crew, setCrew] = useState({});
-  const [shares, setShares] = useState(SHARES.map((s) => ({ ...s, history: [s.price] })));
   const [tab, setTab] = useState("empire");
   const [log, setLog] = useState([{ id: 0, text: "You step off the bus in Newark with $500 and a name nobody recognizes yet.", tone: "neutral" }]);
   const [globalChat, setGlobalChat] = useState([]);
@@ -397,7 +472,6 @@ export default function Omerta() {
     setLog((L) => [{ id: logId.current, text, tone }, ...L].slice(0, 40));
   }, []);
 
-  // Load shared data on mount
   const syncShared = useCallback(async () => {
     try {
       const chatRes = await window.storage.get("global_chat", true);
@@ -439,19 +513,35 @@ export default function Omerta() {
     pushLog(`"${crime.name}" paid out $${fmt(payout)}.`, "good");
   }
 
+  function buyBusiness(b, cat) {
+    const n = owned[b.id] || 0;
+    const price = Math.round(b.cost * Math.pow(1.15, n));
+    if (cash < price) { 
+      pushLog(`Can't cover ${b.name} yet — need $${fmt(price)}.`, "warn"); 
+      return; 
+    }
+    setCash((c) => c - price); 
+    setOwned((o) => ({ ...o, [b.id]: n + 1 }));
+    pushLog(`Acquired ${b.name} #${n + 1}. Passive income up.`, "good");
+  }
+
   const hideoutData = HIDEOUTS.find((h) => h.id === hideout);
 
   useEffect(() => {
     const t = setInterval(() => {
       setEnergy((e) => clamp(e + 2, 0, 100));
       setHeat((h) => clamp(h - (hideoutData?.heatDecay || 1), 0, 100));
-      setShares((S) => S.map((sh) => { 
-        const np = Math.max(1, sh.price * (1 + (Math.random() - 0.5) * sh.vol * 0.3)); 
-        return { ...sh, price: np, history: [...sh.history, np].slice(-20) }; 
-      }));
+      // Try to show ad periodically
+      if (Math.random() < 0.1) {
+        adManager.showBanner().catch(() => {});
+      }
     }, 2000);
     return () => clearInterval(t);
   }, [hideoutData]);
+
+  if (!authenticated) {
+    return <LoginScreen onLogin={() => setAuthenticated(true)} />;
+  }
 
   return (
     <div style={{
@@ -474,7 +564,7 @@ export default function Omerta() {
             <Ledger label="XP" value={xp} accent="#d4af37" />
             
             <SectionTitle>Hideout</SectionTitle>
-            <p>{hideoutData?.name} (Heat -1 per tick)</p>
+            <p style={{ marginTop: 0 }}>{hideoutData?.name}</p>
             
             <SectionTitle>Passive Income</SectionTitle>
             <p>Business owned: {Object.values(owned).reduce((a, b) => a + b, 0)} properties</p>
@@ -485,25 +575,49 @@ export default function Omerta() {
         {tab === "crime" && (
           <div>
             <SectionTitle>Available Crimes</SectionTitle>
-            {CRIMES.slice(0, 5).map((crime) => (
+            {CRIMES.map((crime) => (
               <div key={crime.id} style={{ marginBottom: 12, padding: 10, background: "#1a1410", borderRadius: 8 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
                     <div style={{ fontWeight: 700 }}>{crime.name}</div>
                     <div style={{ fontSize: 12, color: "#8a8078", marginTop: 4 }}>
-                      Energy: {crime.energy} | Heat: +{crime.heat} | Payout: ${fmt(crime.minCash)}-${fmt(crime.maxCash)}
+                      Energy: {crime.energy} | Heat: +{crime.heat}
                     </div>
                   </div>
-                  <SealButton onClick={() => doCrime(crime)} size={48}>
-                    GO
-                  </SealButton>
+                  <SealButton onClick={() => doCrime(crime)} size={48}>GO</SealButton>
                 </div>
               </div>
             ))}
           </div>
         )}
 
-        {/* Wire (Chat) Tab */}
+        {/* Assets Tab with Image Cards */}
+        {tab === "assets" && (
+          <div>
+            {ASSET_CATEGORIES.map((cat) => (
+              <div key={cat.id}>
+                <SectionTitle>{cat.label}</SectionTitle>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12, marginBottom: 20 }}>
+                  {cat.items.map((item) => (
+                    <ItemCard
+                      key={item.id}
+                      icon={item.image}
+                      name={item.name}
+                      sub={`+$${item.income}/sec`}
+                      price={Math.round(item.cost * Math.pow(1.15, owned[item.id] || 0))}
+                      owned={owned[item.id] || 0}
+                      accent={cat.color}
+                      onBuy={() => buyBusiness(item, cat)}
+                      disabled={cash < Math.round(item.cost * Math.pow(1.15, owned[item.id] || 0))}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Wire Tab */}
         {tab === "wire" && (
           <div>
             <SectionTitle>Global Wire</SectionTitle>
@@ -531,22 +645,27 @@ export default function Omerta() {
           </div>
         )}
 
-        {/* Settings */}
+        {/* Settings Tab */}
         {tab === "settings" && (
           <div>
             <SectionTitle>Settings</SectionTitle>
             <div style={{ padding: 12, background: "#1a1410", borderRadius: 8 }}>
-              <p>Storage Provider: {window.storage?.provider || "localStorage"}</p>
-              <p>AdMob App ID: {ADMOB_CONFIG.appId}</p>
-              <p style={{ fontSize: 12, color: "#8a8078", marginTop: 12 }}>
-                AdMob ads will work in native Android/iOS builds through Capacitor. 
-                Configure your Google AdMob account and add the plugin to the native wrapper.
-              </p>
+              <p><strong>Storage:</strong> {window.storage?.provider || "localStorage"}</p>
+              <p><strong>Player:</strong> {PLAYER_NAME}</p>
+              <p><strong>AdMob:</strong> {adManager.available ? "✅ Initialized" : "⚠️ Web build (works in native)"}</p>
+              <hr style={{ borderColor: "#4a3d2f" }} />
+              <button onClick={() => {
+                localStorage.clear();
+                window.location.reload();
+              }} style={{
+                padding: "10px 20px", background: "#c81e3a", color: "#e8dcc8", border: "none", borderRadius: 6,
+                fontFamily: "'Cinzel', serif", fontWeight: 700, cursor: "pointer"
+              }}>Reset Game</button>
             </div>
           </div>
         )}
 
-        {/* Log */}
+        {/* Activity Log */}
         <SectionTitle>Activity Log</SectionTitle>
         <div style={{ fontSize: 12, color: "#8a8078" }}>
           {log.slice(0, 10).map((entry) => (
