@@ -1,0 +1,6 @@
+{
+  "appId": "com.simon.omerta",
+  "appName": "Omertà",
+  "webDir": "dist",
+  "bundledWebRuntime": false
+}
