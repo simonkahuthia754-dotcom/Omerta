@@ -1,5 +1,6 @@
 import React,{useState,useRef,useEffect} from "react";
 import * as G from "./game.js";
+import {PassportCard,CardShelf} from "./passport.jsx";
 import {Ic,Chart,Photo,Skyline,Portrait,Meter,Logo} from "./ui.jsx";
 const {$}=G;
 const Head=({t,p})=><div className="hd"><h1>{t}</h1>{p&&<p>{p}</p>}</div>;
@@ -161,12 +162,13 @@ function Coin({s,go}){
 }
 
 // ---------- Life ----------
-export function Life({s,go,id}){
+export function Life({s,go,id,name}){
   const L=G.level(s),u=G.used(s),cp=G.cap(s),nx=G.STORE[s.store+1],col=G.collections(s),m=s.mate,M=m&&G.MM[m.id];
   const [open,setOpen]=useState(null);
   return<>
-    <div className="pass"><header>Omertà passport<span>Generation {s.leg+1}</span></header>
-      <div className="body"><div className="photo"><Logo size={84}/></div><div><h2>{id}</h2><dl><dt>Rank</dt><dd>{G.rank(L)}</dd><dt>Level</dt><dd>{L}</dd><dt>Prestige</dt><dd>{G.prestige(s)}</dd><dt>Parties</dt><dd>{s.parties}</dd></dl></div></div></div>
+    <Sec t="Passport" r={G.CARDS.find(c=>c.id===G.cardOf(s)).n}/>
+    <div className="pwrap"><PassportCard s={s} name={name} id={id}/></div>
+    <CardShelf s={s} go={go}/>
     <Sec t="Partner" r={m?(m.married?"Married":"Together"):"Single"}/>
     {!m?<div className="list">{L<6&&<div className="empty">Someone will notice you at level 6.</div>}{G.MATES.map(x=><div className="job" key={x.id}><Portrait id={x.id}/><div className="who"><b>{x.n}</b><small>{x.bio}</small></div>
       <button className="btn" disabled={L<6} onClick={()=>go({t:"pickMate",id:x.id})}>Ask out</button></div>)}</div>:

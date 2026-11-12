@@ -179,8 +179,12 @@ export const BM=idx(BIZ), IM=idx(ITEMS), FM=idx(FX), DM=idx(DIST), MM=idx(MATES)
 const need=l=>Math.round(XPK*Math.pow(l-1,XPE));
 export const level=s=>{let l=1;while(l<99&&s.res>=need(l+1))l++;return l};
 export const xpBar=s=>{const l=level(s),a=need(l),b=need(l+1);return{l,cur:s.res-a,span:b-a,pct:Math.min(100,(s.res-a)/(b-a)*100)}};
+// Passport cards, plainest to richest. The player moves up one every couple of ranks.
+export const CARDS=[{id:"silver",n:"Violet Silver",min:1},{id:"frost",n:"Frost Pact",min:8},{id:"emerald",n:"Emerald Gold",min:16},{id:"crimson",n:"Crimson Velvet",min:27},{id:"obsidian",n:"Obsidian Crown",min:42}];
+export const cardAt=l=>CARDS.filter(c=>c.min<=l).pop().id;
 export const RANKS=[[1,"Errand boy"],[4,"Associate"],[8,"Soldier"],[12,"Enforcer"],[16,"Capo"],[21,"Consigliere"],[27,"Underboss"],[34,"Boss"],[42,"Don"],[50,"Godfather"]];
 export const rank=l=>RANKS.filter(r=>l>=r[0]).pop()[1];
+export const cardOf=s=>{const l=level(s),c=CARDS.find(x=>x.id===s.pc);return c&&c.min<=l?c.id:cardAt(l)};
 export const enMax=s=>Math.min(60,12+Math.floor(level(s)*.9));
 export const jailed=s=>s.jail>clock();
 export const eq=(o,p)=>o.st+o.st*o.lev*o.dir*(p-o.e)/o.e;
@@ -237,7 +241,7 @@ export const fresh=(now=Date.now(),keep={})=>{
   const leg=keep.leg||0;
   const s={v:3,t:now,t0:now,fxT:now,ts:now,cash:20000+leg*60000,dirty:0,res:0,lv:1,en:12,enT:now,heat:5,friends:0,parties:0,store:0,leg,
     biz:{},inv:{},est:{},crew:{sol:3,cap:0},dist:Object.fromEntries(DIST.map(d=>[d.id,0])),mate:null,last:null,pos:[],trades:[],nw:[],pid:1,
-    omc:newOmc(),jobs:{},jobsDone:0,jail:0,hcd:{},ev:null,evT:now+15*MIN,dl:keep.dl||{d:"",st:0},ach:keep.ach||{},wins:0,raids:0,best:0,wc:0,wt:now,rv:{},
+    omc:newOmc(),pc:null,jobs:{},jobsDone:0,jail:0,hcd:{},ev:null,evT:now+15*MIN,dl:keep.dl||{d:"",st:0},ach:keep.ach||{},wins:0,raids:0,best:0,wc:0,wt:now,rv:{},
     log:[{t:now,x:leg?"The keys are yours now. Your father left a lot of enemies and a little money.":"Sal's old keys are yours now. Don't lose them."}],fx};
   return s;
 };
@@ -276,7 +280,8 @@ function tick(s,now){
   if(s.heat>=90){const f=Math.round(s.cash*.06),z=Math.round(s.dirty*.4);s.cash-=f;s.dirty-=z;s.heat=50;s.raids++;say(s,`Cops kicked in the door before dawn. Fined ${$(f)} and they took ${$(z)} in cash. Heat is back down to 50.`,-f-z)}
   if(!s.ev&&now>=s.evT&&level(s)>=2){spawn(s,now);s.evT=now+ri(30,90)*MIN}
   const L=level(s);
-  while(s.lv<L){s.lv++;s.en=mx;s.cash+=500*s.lv;say(s,STORY[s.lv]||`Level ${s.lv}. ${pick(["Another door opens.","The table gets a little smaller and a little richer.","They're starting to say your name like it means something."])}`,500*s.lv)}
+  while(s.lv<L){s.lv++;s.en=mx;s.cash+=500*s.lv;say(s,STORY[s.lv]||`Level ${s.lv}. ${pick(["Another door opens.","The table gets a little smaller and a little richer.","They're starting to say your name like it means something."])}`,500*s.lv);
+    if(cardAt(s.lv)!==cardAt(s.lv-1)){s.pc=null;say(s,`New passport issued: ${CARDS.find(c=>c.id===cardAt(s.lv)).n}. Check the Life screen.`)}}
   ACH.forEach(a=>{if(!s.ach[a.id]&&a.f(s)){s.ach[a.id]=now;s.cash+=a.rw.cash;s.res+=a.rw.xp;say(s,`Achievement: ${a.n}. ${a.rw.cash?"+"+$(a.rw.cash)+".":""}`,a.rw.cash)}});
   const l=s.nw[s.nw.length-1];if(!l||now-l[0]>15*MIN){s.nw.push([now,worth(s).total]);if(s.nw.length>150)s.nw.shift()}
 }
@@ -389,6 +394,7 @@ export function reduce(st,a){
     const q=o.q*f,net=q*o.p*(1-OMC_FEE),pl=net-o.cost*f;o.cost-=o.cost*f;o.q-=q;if(o.q<1e-9){o.q=0;o.cost=0}
     s.cash+=net;if(pl>0)s.res+=Math.min(60,Math.round(Math.log10(pl+1)*4));say(s,`Sold ${omcQty(q)} Omerta Coin for ${$(net)}: ${pl>=0?"a gain":"a loss"} of ${$(Math.abs(pl))}.`,pl);return s}
   case"omcLive":{if(!(a.p>1000))return s;const o=s.omc;o.anchor=a.p;o.p=a.p;o.live=1;o.lt=now;o.h.push(a.p);if(o.h.length>90)o.h.shift();return s}
+  case"card":{const c=CARDS.find(x=>x.id===a.id);if(!c||c.min>level(s))return no("That passport isn't unlocked yet.");s.pc=c.id===cardAt(level(s))?null:c.id;return s}
   case"retire":{if(level(s)<25)return no("You're not ready. Reach level 25 first.");
     const n=fresh(now,{leg:s.leg+1,ach:s.ach,dl:s.dl});n.log.unshift({t:now,x:`Generation ${s.leg+2} begins. Every business now pays ${25}% more, for good.`});n.toast={k:Math.random(),x:n.log[0].x};NOW=0;return n}
   }

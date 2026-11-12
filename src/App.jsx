@@ -54,7 +54,7 @@ export default function App(){
     pull();const t=setInterval(pull,90000);return()=>{on=0;clearInterval(t)}},[]);
   useEffect(()=>{if(!s.toast)return;setToast(s.toast.x);const t=setTimeout(()=>setToast(null),3800);return()=>clearTimeout(t)},[s.toast&&s.toast.k]);
   const send=text=>{try{push(ref(rtdb,"omerta_chat"),{username:ID.name,flag:"🇰🇪",text,timestamp:Date.now()})}catch(e){setChat(p=>[...p,{username:ID.name,flag:"🇰🇪",text}])}};
-  const P={s,go,chat,send,id:ID.id},scr=useRef(null);
+  const P={s,go,chat,send,id:ID.id,name:ID.name},scr=useRef(null);
   useEffect(()=>{if(scr.current)scr.current.scrollTop=0},[tab]);
   return(
     <div className="stage">
