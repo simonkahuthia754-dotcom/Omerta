@@ -1,7 +1,7 @@
 import React,{useState,useRef,useEffect} from "react";
 import * as G from "./game.js";
 import {PassportCard,CardShelf} from "./passport.jsx";
-import {Ic,Chart,Photo,Skyline,Portrait,Meter,Logo} from "./ui.jsx";
+import {Ic,Chart,Photo,Skyline,Portrait,Meter,Logo,IMG} from "./ui.jsx";
 const {$}=G;
 const Head=({t,p})=><div className="hd"><h1>{t}</h1>{p&&<p>{p}</p>}</div>;
 const Sec=({t,r})=><div className="sec"><h2>{t}</h2>{r&&<span>{r}</span>}</div>;
@@ -190,7 +190,10 @@ export function Life({s,go,id,name}){
         {!lk&&<div className="btns tight"><button className="buy" disabled={s.cash<it.p||(it.est&&have)} onClick={()=>go({t:"buy",id:it.id})}>{it.est&&have?"Owned":s.cash<it.p?"Can't afford":"Buy"}</button>
           {have?<button className="sell" onClick={()=>go({t:"sell",id:it.id})}>Sell</button>:null}</div>}</div>)})}</div></div>)}
     <Sec t="Achievements" r={`${Object.keys(s.ach).length} of ${G.ACH.length}`}/>
-    <div className="list">{G.ACH.map(a=>{const d=!!s.ach[a.id];return<div className={"job"+(d?"":" lk")} key={a.id}><div className="who"><b>{a.n}{d&&" ✓"}</b><small>{a.d}</small></div>{a.rw.cash>0&&<small className="dim">{$(a.rw.cash)}</small>}</div>})}</div>
+    <div className="badges">{G.ACH.map(a=>{const d=!!s.ach[a.id];return(
+      <div className={"badge"+(d?" got":"")} key={a.id} aria-label={`${a.n}${d?", earned":", locked"}. ${a.d}`}>
+        <div className="art"><img src={IMG(G.badgeOf(a.id))} alt="" draggable="false" loading="lazy"/>{!d&&<span className="lkm"><Ic n="lock"/></span>}</div>
+        <b>{a.n}</b><small>{a.d}</small>{a.rw.cash>0&&<em>{d?"Earned":$(a.rw.cash)}</em>}</div>)})}</div>
     <Sec t="Legacy"/>
     <div className="panel"><p className="dim" style={{fontSize:14,lineHeight:1.5}}>At level 25 you can hand everything to your heir. You start over with a little cash, and every business pays 25% more for good. Achievements stay.</p>
       <div className="btns"><button className="btn red" disabled={L<25} onClick={()=>{if(confirm("Hand the family to your heir? You'll start over at level 1."))go({t:"retire"})}}>{L<25?`Unlocks at level 25`:"Pass it down"}</button></div></div>

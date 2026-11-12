@@ -168,6 +168,13 @@ export const ACH=[
   {id:"lv50",n:"Godfather",d:"Reach level 50.",f:s=>level(s)>=50,rw:{cash:20000000,xp:0}},
   {id:"heir",n:"Dynasty",d:"Hand the family to an heir.",f:s=>s.leg>=1,rw:{cash:100000,xp:500}},
 ];
+// Which badge art each achievement wears. Five designs for now; more can be added by dropping a file in public/img and listing it here.
+export const BADGE={job1:"fire",job100:"fire",job1000:"fire",turf3:"fire",win25:"fire",raid:"fire",
+  biz1:"money",biz6:"money",nw1:"money",nw10:"money",nw100:"money",
+  streak7:"bolt",trade:"bolt",coin1:"bolt",
+  lv10:"sapphire",lv25:"sapphire",lv50:"sapphire",
+  coll:"ice",wed:"ice",party10:"ice",heir:"ice"};
+export const badgeOf=id=>"badge-"+(BADGE[id]||"sapphire")+".jpg";
 // Omerta Coin follows the real Bitcoin price when the phone is online. Offline, it wanders around the last real price.
 const omcStep=o=>{const a=o.anchor||OMC_BASE;let r=gauss()*.0004+(a-o.p)/a*.002;if(Math.random()<.0015)r+=(Math.random()<.5?-1:1)*rnd(.02,.06);o.p=Math.max(a*.3,o.p*(1+r));o.h.push(o.p);if(o.h.length>90)o.h.shift()};
 export const newOmc=()=>{const o={q:0,cost:0,p:OMC_BASE,anchor:OMC_BASE,h:[],live:0,lt:0,bought:0};for(let i=0;i<90;i++)omcStep(o);return o};
