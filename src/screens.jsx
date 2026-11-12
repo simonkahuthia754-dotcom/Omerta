@@ -1,6 +1,6 @@
 import React,{useState,useRef,useEffect} from "react";
 import * as G from "./game.js";
-import {Ic,Chart,Photo,Skyline,Portrait,Meter} from "./ui.jsx";
+import {Ic,Chart,Photo,Skyline,Portrait,Meter,Logo} from "./ui.jsx";
 const {$}=G;
 const Head=({t,p})=><div className="hd"><h1>{t}</h1>{p&&<p>{p}</p>}</div>;
 const Sec=({t,r})=><div className="sec"><h2>{t}</h2>{r&&<span>{r}</span>}</div>;
@@ -15,7 +15,7 @@ export function Home({s,go,chat,send,id}){
   const E=s.ev&&G.EM[s.ev.id];
   const reward=50000+Math.round(s.heat)*9000;
   return<>
-    <div className="hero"><Skyline/><Photo name="skyline"/><div className="hero-in">
+    <div className="hero"><Skyline/><Photo name="city.jpg" pos="50% 40%"/><div className="hero-in">
       <div className="rank">{G.rank(xp.l)}</div><div className="lv">Level {xp.l}</div>
       <Meter v={xp.cur} max={xp.span}/><small>{Math.round(xp.cur).toLocaleString()} of {Math.round(xp.span).toLocaleString()} to next level</small>
     </div></div>
@@ -86,7 +86,7 @@ export function Empire({s,go}){
   const L=G.level(s),now=s.t,[sel,setSel]=useState("ital"),d=G.DM[sel],room=G.washRoom(s,now);
   const owned=G.BIZ.filter(b=>s.biz[b.id]),rest=G.BIZ.filter(b=>!s.biz[b.id]);
   return<>
-    <div className="band"><Skyline h={130}/><Photo name="empire"/><div className="hd"><h1>The empire</h1></div></div>
+    <div className="band"><Skyline h={130}/><Photo name="city.jpg" pos="50% 78%"/><div className="hd"><h1>The empire</h1></div></div>
     <div className="panel"><div className="kv"><span>Dirty cash</span><b>{$(s.dirty)}</b></div>
       <div className="kv"><span>Can wash through businesses</span><b>{$(room)}</b></div>
       {s.dirty>G.dirtyLimit(s)&&<small className="warn">That's more than you can hide. The police are starting to notice.</small>}
@@ -118,10 +118,11 @@ export function Empire({s,go}){
 const STAKES=[1000,5000,25000,100000,500000],LEVS=[2,5,10,25,50];
 export function Markets({s,go}){
   const [p,setP]=useState("EURUSD"),[st,setSt]=useState(5000),[lv,setLv]=useState(5),[sl,setSl]=useState(.5),[tp,setTp]=useState(0);
-  const f=G.FM[p],h=s.fx.h[p],px=s.fx.p[p],chg=(px-h[0])/h[0]*100,mine=s.pos.filter(o=>o.pair===p);
+  const q=p==="OMC"?"EURUSD":p,f=G.FM[q],h=s.fx.h[q],px=s.fx.p[q],chg=(px-h[0])/h[0]*100,mine=s.pos.filter(o=>o.pair===q);
   return<>
     <Head t="The markets" p="Prices keep moving while you're away. Leverage makes small moves big."/>
-    <div className="seg scrollx">{G.FX.map(x=><button key={x.id} className={p===x.id?"on":""} onClick={()=>setP(x.id)}>{x.n}</button>)}</div>
+    <div className="seg scrollx"><button className={p==="OMC"?"on":""} onClick={()=>setP("OMC")}>Omerta Coin</button>{G.FX.map(x=><button key={x.id} className={p===x.id?"on":""} onClick={()=>setP(x.id)}>{x.n}</button>)}</div>
+    {p==="OMC"?<Coin s={s} go={go}/>:<>
     <div className="quote"><div className="px">{px.toFixed(f.d)}</div><div className={"chg "+(chg>=0?"up":"dn")}>{chg>=0?"+":""}{chg.toFixed(2)}%</div></div>
     <div className="chartbox"><Chart pts={h} color={chg>=0?"#7fbf8e":"#d4666e"} h={150} lines={mine.map(o=>({y:o.e,c:o.dir>0?"#7fbf8e":"#d4666e"}))}/></div>
     <div className="panel"><div className="kv"><span>Stake</span><b>{$(st)}</b></div>
@@ -139,6 +140,23 @@ export function Markets({s,go}){
       {s.pos.map(o=>{const v=G.eq(o,s.fx.p[o.pair]),pl=v-o.st;return(<div className="job" key={o.id}><div className="who"><b>{o.dir>0?"Buy":"Sell"} {G.FM[o.pair].n} · {o.lev}x</b><small>Stake {$(o.st)} · entry {o.e.toFixed(G.FM[o.pair].d)}{o.sl?` · stop -${o.sl*100}%`:""}{o.tp?` · target +${o.tp*100}%`:""}</small></div>
         <div className="pl"><b className={pl>=0?"up":"dn"}>{pl>=0?"+":""}{$(pl)}</b><button className="btn ghost" onClick={()=>go({t:"close",id:o.id})}>Close</button></div></div>)})}</div>
     {s.trades.length>0&&<><Sec t="Closed"/><div className="feed">{s.trades.slice(0,6).map((t,i)=><div key={i} className={"fl2 "+(t.pnl>=0?"up":"dn")}><span>{G.FM[t.pair].n}</span><b>{t.pnl>=0?"+":""}{$(t.pnl)}</b></div>)}</div></>}
+  </>}
+  </>;
+}
+
+function Coin({s,go}){
+  const o=s.omc,[amt,setAmt]=useState(5000),chg=(o.p-o.h[0])/o.h[0]*100,val=o.q*o.p,pl=o.cost>0?val-o.cost:0,live=o.live&&s.t-o.lt<5*6e4;
+  return<>
+    <div className="quote"><div className="px">{$(o.p)}</div><div className={"chg "+(chg>=0?"up":"dn")}>{chg>=0?"+":""}{chg.toFixed(2)}%</div><span className={"chip "+(live?"live":"")}>{live?"Live Bitcoin price":"Simulated"}</span></div>
+    <div className="chartbox"><Chart pts={o.h} color={chg>=0?"#7fbf8e":"#d4666e"} h={150} lines={o.q>0&&o.cost>0?[{y:o.cost/o.q,c:"#e6c77a"}]:[]}/></div>
+    <div className="panel"><div className="kv"><span>You hold</span><b>{G.omcQty(o.q)} OMC</b></div><div className="kv"><span>Worth</span><b>{$(val)}</b></div>
+      {o.q>0&&<div className="kv"><span>Profit or loss</span><b className={pl>=0?"up":"dn"}>{pl>=0?"+":""}{$(pl)}</b></div>}
+      <div className="kv" style={{marginTop:10}}><span>Amount to buy</span><b>{$(amt)}</b></div>
+      <div className="seg">{[1000,5000,25000,100000,500000].map(x=><button key={x} className={amt===x?"on":""} onClick={()=>setAmt(x)}>{x/1000}k</button>)}</div>
+      <div className="btns"><button className="btn up" onClick={()=>go({t:"buyOmc",amt})}>Buy</button>{[.25,.5,1].map(f=><button key={f} className="btn red" disabled={o.q<=0} onClick={()=>go({t:"sellOmc",frac:f})}>Sell {f*100}%</button>)}</div>
+      <small className="dim">The exchange keeps 0.5% on every buy and sell. Coins sit in your wallet, not in your storage, and nobody can seize them.</small></div>
+    <Sec t="About Omerta Coin"/>
+    <div className="panel"><p className="dim" style={{fontSize:14,lineHeight:1.55,marginTop:0}}>Omerta Coin copies Bitcoin. There will only ever be {(G.OMC_CAP/1e6).toFixed(0)} million of them, the supply is cut in half about every four years (next around April 2028), and the price is Bitcoin's real price. When your phone is online it reads the live price. Offline, it wanders near the last price it saw.</p></div>
   </>;
 }
 
@@ -148,7 +166,7 @@ export function Life({s,go,id}){
   const [open,setOpen]=useState(null);
   return<>
     <div className="pass"><header>Omertà passport<span>Generation {s.leg+1}</span></header>
-      <div className="body"><div className="photo"><Ic n="dagger"/></div><div><h2>{id}</h2><dl><dt>Rank</dt><dd>{G.rank(L)}</dd><dt>Level</dt><dd>{L}</dd><dt>Prestige</dt><dd>{G.prestige(s)}</dd><dt>Parties</dt><dd>{s.parties}</dd></dl></div></div></div>
+      <div className="body"><div className="photo"><Logo size={84}/></div><div><h2>{id}</h2><dl><dt>Rank</dt><dd>{G.rank(L)}</dd><dt>Level</dt><dd>{L}</dd><dt>Prestige</dt><dd>{G.prestige(s)}</dd><dt>Parties</dt><dd>{s.parties}</dd></dl></div></div></div>
     <Sec t="Partner" r={m?(m.married?"Married":"Together"):"Single"}/>
     {!m?<div className="list">{L<6&&<div className="empty">Someone will notice you at level 6.</div>}{G.MATES.map(x=><div className="job" key={x.id}><Portrait id={x.id}/><div className="who"><b>{x.n}</b><small>{x.bio}</small></div>
       <button className="btn" disabled={L<6} onClick={()=>go({t:"pickMate",id:x.id})}>Ask out</button></div>)}</div>:

@@ -1,4 +1,4 @@
-import React from "react";
+import React,{useState} from "react";
 
 const D={
   dagger:"M12 2l2.2 7.2L12 15l-2.2-5.8zM7 15h10M12 15v7M10 22h4",
@@ -42,7 +42,9 @@ export function Chart({pts,color="#e6c77a",h=120,lines=[],fill=true,dec=2}){
 }
 
 // Optional real photo. Drop a file in public/img and it shows over the drawn art.
-export const Photo=({name})=><img className="photo-fill" src={"img/"+name+".jpg"} alt="" onError={e=>e.currentTarget.remove()}/>;
+const IMG=n=>(typeof window!=="undefined"&&window.OMERTA_IMG&&window.OMERTA_IMG[n])||"img/"+n;
+export const Photo=({name,pos="center"})=><img className="photo-fill" src={IMG(name)} style={{objectPosition:pos}} alt="" onError={e=>e.currentTarget.remove()}/>;
+export function Logo({size=28}){const [bad,setBad]=useState(false);return bad?<Ic n="dagger" style={{width:size,height:size}}/>:<img className="logo" src={IMG("logo.png")} width={size} height={size} alt="Omertà" onError={()=>setBad(true)}/>}
 
 // Seeded skyline so it looks the same every time
 export function Skyline({h=150,moon=true}){

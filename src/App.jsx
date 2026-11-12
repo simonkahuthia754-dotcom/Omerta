@@ -3,7 +3,7 @@ import {initializeApp} from "firebase/app";
 import {getFirestore,enableIndexedDbPersistence} from "firebase/firestore";
 import {getDatabase,ref,push,onChildAdded,query,orderByChild,limitToLast} from "firebase/database";
 import {reduce,load,KEY,$,enMax} from "./game.js";
-import {Ic,Skyline,Photo} from "./ui.jsx";
+import {Ic,Logo} from "./ui.jsx";
 import {Home,Jobs,Empire,Markets,Life} from "./screens.jsx";
 
 const firebaseConfig={apiKey:"AIzaSyDUMMY",authDomain:"tycoon-empire-world.firebaseapp.com",databaseURL:"https://tycoon-empire-world-default-rtdb.firebaseio.com",projectId:"tycoon-empire-world",storageBucket:"tycoon-empire-world.appspot.com",messagingSenderId:"123456789",appId:"1:123456789:web:omerta"};
@@ -33,7 +33,7 @@ function Cover({open,unlock}){
   };
   return(<div className={"cover"+(open?" open":"")} aria-hidden={open}><div className="in">
     <div><h1>Omertà</h1><p>{saved?"Enter your PIN":"Choose a four-digit PIN"}</p></div>
-    <div className="seal"><Ic n="dagger"/></div>
+    <div className="seal"><Logo size={200}/></div>
     <div className={"dots"+(bad?" bad":"")} aria-label="Passcode">{[0,1,2,3].map(i=><i key={i} className={i<pin.length?"f":""}/>)}</div>
     <div className="pad">{KEYS.map(k=><button key={k} className={k.length>1?"sm":""} onClick={()=>key(k)}>{k}</button>)}</div>
   </div></div>);
@@ -50,6 +50,8 @@ export default function App(){
     try{const q=query(ref(rtdb,"omerta_chat"),orderByChild("timestamp"),limitToLast(50));
       return onChildAdded(q,x=>{const v=x.val();if(v)setChat(p=>[...p.slice(-49),v])})}catch(e){}
   },[]);
+  useEffect(()=>{let on=1;const pull=()=>fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd").then(r=>r.json()).then(j=>{const p=j&&j.bitcoin&&j.bitcoin.usd;if(on&&p)go({t:"omcLive",p,now:Date.now()})}).catch(()=>{});
+    pull();const t=setInterval(pull,90000);return()=>{on=0;clearInterval(t)}},[]);
   useEffect(()=>{if(!s.toast)return;setToast(s.toast.x);const t=setTimeout(()=>setToast(null),3800);return()=>clearTimeout(t)},[s.toast&&s.toast.k]);
   const send=text=>{try{push(ref(rtdb,"omerta_chat"),{username:ID.name,flag:"🇰🇪",text,timestamp:Date.now()})}catch(e){setChat(p=>[...p,{username:ID.name,flag:"🇰🇪",text}])}};
   const P={s,go,chat,send,id:ID.id},scr=useRef(null);
@@ -58,7 +60,7 @@ export default function App(){
     <div className="stage">
       <div className={"book"+(open?" open":"")}>
         <div className="bar">
-          <div className="mark"><Ic n="dagger"/>Omertà</div>
+          <div className="mark"><Logo size={32}/>Omertà</div>
           <div className="chips"><span className="chip en" title="Energy"><Ic n="bolt"/>{s.en}/{enMax(s)}</span>
             <span className="chip dirty" title="Dirty cash">{$(s.dirty)}</span><span className="purse" title="Clean cash">{$(s.cash)}</span></div>
         </div>

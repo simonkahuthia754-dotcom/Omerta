@@ -35,6 +35,11 @@ jobs:
       - name: Add the Android platform
         run: npx cap add android
 
+      - name: Use the Omertà launcher icon
+        run: |
+          cp -r assets/android/res/. android/app/src/main/res/
+          sed -i 's/#FFFFFF/#000000/' android/app/src/main/res/values/ic_launcher_background.xml
+
       - name: Sync web build into the Android project
         run: npx cap sync android
 

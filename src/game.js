@@ -1,4 +1,5 @@
 // Omertà rules. The UI never edits state directly; everything goes through reduce().
+export const OMC_BASE=73446,OMC_FEE=.005,OMC_CAP=21e6;
 export const KEY="omerta_save_v3", H=36e5, MIN=6e4, TICK=2500, REGEN=3*MIN, XPK=55, XPE=1.9;
 let NOW=0; const clock=()=>NOW||Date.now();
 const rnd=(a,b)=>a+Math.random()*(b-a), ri=(a,b)=>Math.floor(rnd(a,b+1)), pick=a=>a[ri(0,a.length-1)];
@@ -161,11 +162,16 @@ export const ACH=[
   {id:"streak7",n:"Creature of habit",d:"Collect your daily gift seven days in a row.",f:s=>s.dl.st>=7,rw:{cash:30000,xp:300}},
   {id:"raid",n:"Front page",d:"Survive a police raid.",f:s=>s.raids>=1,rw:{cash:5000,xp:100}},
   {id:"trade",n:"Sharp",d:"Close a trade for $100,000 profit.",f:s=>s.best>=1e5,rw:{cash:50000,xp:500}},
+  {id:"coin1",n:"Early adopter",d:"Buy some Omerta Coin.",f:s=>s.omc.bought>0,rw:{cash:10000,xp:100}},
   {id:"lv10",n:"Made",d:"Reach level 10.",f:s=>level(s)>=10,rw:{cash:20000,xp:0}},
   {id:"lv25",n:"Boss",d:"Reach level 25.",f:s=>level(s)>=25,rw:{cash:500000,xp:0}},
   {id:"lv50",n:"Godfather",d:"Reach level 50.",f:s=>level(s)>=50,rw:{cash:20000000,xp:0}},
   {id:"heir",n:"Dynasty",d:"Hand the family to an heir.",f:s=>s.leg>=1,rw:{cash:100000,xp:500}},
 ];
+// Omerta Coin follows the real Bitcoin price when the phone is online. Offline, it wanders around the last real price.
+const omcStep=o=>{const a=o.anchor||OMC_BASE;let r=gauss()*.0004+(a-o.p)/a*.002;if(Math.random()<.0015)r+=(Math.random()<.5?-1:1)*rnd(.02,.06);o.p=Math.max(a*.3,o.p*(1+r));o.h.push(o.p);if(o.h.length>90)o.h.shift()};
+export const newOmc=()=>{const o={q:0,cost:0,p:OMC_BASE,anchor:OMC_BASE,h:[],live:0,lt:0,bought:0};for(let i=0;i<90;i++)omcStep(o);return o};
+export const omcQty=q=>q>=100?q.toFixed(2):q>=1?q.toFixed(4):q.toFixed(6);
 const idx=a=>Object.fromEntries(a.map(x=>[x.id,x]));
 export const BM=idx(BIZ), IM=idx(ITEMS), FM=idx(FX), DM=idx(DIST), MM=idx(MATES), JM=idx(JOBS), HM=idx(HEISTS), EM=idx(EVENTS);
 
@@ -205,8 +211,8 @@ export const bizUpCost=(id,l)=>Math.round(BM[id].cost*.6*Math.pow(l,1.8));
 export const worth=s=>{
   const b=Object.entries(s.biz).reduce((a,[k,v])=>a+BM[k].cost*v.l,0);
   const it=Object.entries(s.inv).reduce((a,[k,q])=>a+IM[k].p*q,0)+Object.keys(s.est).reduce((a,k)=>a+IM[k].p,0);
-  const tr=s.pos.reduce((a,o)=>a+Math.max(0,eq(o,s.fx.p[o.pair])),0);
-  return{cash:s.cash,dirty:Math.round(s.dirty*.5),biz:b,stash:it,trades:tr,total:s.cash+Math.round(s.dirty*.5)+b+it+tr};
+  const tr=s.pos.reduce((a,o)=>a+Math.max(0,eq(o,s.fx.p[o.pair])),0),coin=s.omc.q*s.omc.p;
+  return{cash:s.cash,dirty:Math.round(s.dirty*.5),biz:b,stash:it,trades:tr,coin,total:s.cash+Math.round(s.dirty*.5)+b+it+tr+coin};
 };
 export const board=(s,now)=>{
   const hrs=(now-s.t0)/H,me={n:"You",me:1,f:"🇰🇪",c:"Kenya",w:worth(s).total,l:level(s)};
@@ -231,11 +237,11 @@ export const fresh=(now=Date.now(),keep={})=>{
   const leg=keep.leg||0;
   const s={v:3,t:now,t0:now,fxT:now,ts:now,cash:20000+leg*60000,dirty:0,res:0,lv:1,en:12,enT:now,heat:5,friends:0,parties:0,store:0,leg,
     biz:{},inv:{},est:{},crew:{sol:3,cap:0},dist:Object.fromEntries(DIST.map(d=>[d.id,0])),mate:null,last:null,pos:[],trades:[],nw:[],pid:1,
-    jobs:{},jobsDone:0,jail:0,hcd:{},ev:null,evT:now+15*MIN,dl:keep.dl||{d:"",st:0},ach:keep.ach||{},wins:0,raids:0,best:0,wc:0,wt:now,rv:{},
+    omc:newOmc(),jobs:{},jobsDone:0,jail:0,hcd:{},ev:null,evT:now+15*MIN,dl:keep.dl||{d:"",st:0},ach:keep.ach||{},wins:0,raids:0,best:0,wc:0,wt:now,rv:{},
     log:[{t:now,x:leg?"The keys are yours now. Your father left a lot of enemies and a little money.":"Sal's old keys are yours now. Don't lose them."}],fx};
   return s;
 };
-export const load=()=>{try{const j=JSON.parse(localStorage.getItem(KEY));if(j&&j.v===3)return j}catch(e){}return fresh()};
+export const load=()=>{try{const j=JSON.parse(localStorage.getItem(KEY));if(j&&j.v===3){if(!j.omc)j.omc=newOmc();return j}}catch(e){}return fresh()};
 
 function closePos(s,o,why){
   const v=Math.max(0,eq(o,s.fx.p[o.pair])),pl=v-o.st;
@@ -245,6 +251,7 @@ function closePos(s,o,why){
 }
 function fxStep(s){
   FX.forEach(f=>{const[p,dr]=walk(s,f),h=s.fx.h[f.id];s.fx.p[f.id]=p;s.fx.dr[f.id]=dr;h.push(p);if(h.length>90)h.shift()});
+  omcStep(s.omc);
   [...s.pos].forEach(o=>{const v=eq(o,s.fx.p[o.pair]);
     if(v<=0)closePos(s,o,"Wiped out on");
     else if(o.sl&&v<=o.st*(1-o.sl))closePos(s,o,"Stop loss hit on");
@@ -376,6 +383,12 @@ export function reduce(st,a){
     s.cash-=a.st+fee;s.pos.push({id:s.pid++,pair:a.pair,dir:a.dir,st:a.st,lev:a.lev,sl:a.sl||0,tp:a.tp||0,e:s.fx.p[a.pair],t:now});
     say(s,`${a.dir>0?"Bought":"Sold"} ${FM[a.pair].n} with ${$(a.st)} at ${a.lev}x. Broker fee ${$(fee)}.`);return s}
   case"close":{const o=s.pos.find(o=>o.id===a.id);if(o)closePos(s,o,"Closed");return s}
+  case"buyOmc":{const o=s.omc;if(a.amt<100)return no("The smallest buy is $100.");if(s.cash<a.amt)return broke();
+    const q=a.amt*(1-OMC_FEE)/o.p;s.cash-=a.amt;o.q+=q;o.cost+=a.amt;o.bought=1;say(s,`Bought ${omcQty(q)} Omerta Coin at ${$(o.p)}. The exchange kept ${$(a.amt*OMC_FEE)}.`,-a.amt);return s}
+  case"sellOmc":{const o=s.omc,f=a.frac||1;if(o.q<=0)return no("You don't hold any Omerta Coin.");
+    const q=o.q*f,net=q*o.p*(1-OMC_FEE),pl=net-o.cost*f;o.cost-=o.cost*f;o.q-=q;if(o.q<1e-9){o.q=0;o.cost=0}
+    s.cash+=net;if(pl>0)s.res+=Math.min(60,Math.round(Math.log10(pl+1)*4));say(s,`Sold ${omcQty(q)} Omerta Coin for ${$(net)}: ${pl>=0?"a gain":"a loss"} of ${$(Math.abs(pl))}.`,pl);return s}
+  case"omcLive":{if(!(a.p>1000))return s;const o=s.omc;o.anchor=a.p;o.p=a.p;o.live=1;o.lt=now;o.h.push(a.p);if(o.h.length>90)o.h.shift();return s}
   case"retire":{if(level(s)<25)return no("You're not ready. Reach level 25 first.");
     const n=fresh(now,{leg:s.leg+1,ach:s.ach,dl:s.dl});n.log.unshift({t:now,x:`Generation ${s.leg+2} begins. Every business now pays ${25}% more, for good.`});n.toast={k:Math.random(),x:n.log[0].x};NOW=0;return n}
   }
