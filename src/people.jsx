@@ -13,14 +13,14 @@ function Fold({label,children}){
 const Traits=({x})=><div className="traits"><Fold label="Character">{x.ch}</Fold><Fold label="Strength">{x.st}</Fold><Fold label="Weakness">{x.wk}</Fold></div>;
 
 export function Partner({s,go,L}){
-  const m=s.mate,M=m&&G.MM[m.id],pref=s.mpref,[tab,setTab]=useState("girlfriend"),[sw,setSw]=useState(false);
-  const type=pref||tab,pool=G.MATES.filter(x=>x.t===type);
+  const m=s.mate,M=m&&G.MM[m.id],[tab,setTab]=useState("girlfriend"),[sw,setSw]=useState(false),[tab2,setTab2]=useState(M?M.t:"girlfriend");
+  const type=tab,pool=G.MATES.filter(x=>x.t===type);
   return(<>
     <Sec t="Partner" r={m?(m.married?"Married":"Together"):"Single"}/>
-    {!pref&&<div className="seg sm" role="tablist">{[["girlfriend","Girlfriends"],["boyfriend","Boyfriends"]].map(([k,l])=><button key={k} role="tab" aria-selected={tab===k} className={tab===k?"on":""} onClick={()=>setTab(k)}>{l}</button>)}</div>}
+    {!m&&<div className="seg sm" role="tablist">{[["girlfriend","Girlfriends"],["boyfriend","Boyfriends"]].map(([k,l])=><button key={k} role="tab" aria-selected={tab===k} className={tab===k?"on":""} onClick={()=>setTab(k)}>{l}</button>)}</div>}
     {!m&&<>
       {L<6&&<p className="empty">Someone will notice you at level 6.</p>}
-      {!pref&&L>=6&&<p className="empty">Choose who you're looking for. Once you've asked someone out, it stays that way.</p>}
+      
       <div className="people">{pool.map(x=><div className="pcard2" key={x.id}><div className="mrow"><Portrait id={x.id} size={76}/><div className="who"><b className="big">{x.n}</b><small>{x.bio}</small></div></div>
         <Traits x={x}/><div className="btns"><button className="btn" disabled={L<6} onClick={()=>go({t:"pickMate",id:x.id})}>Ask out</button></div></div>)}</div></>}
     {m&&<div className="panel"><div className="mrow"><Portrait id={m.id} size={84}/><div className="who"><b className="big">{M.n}</b><small>{M.t}</small><Meter v={m.aff} c="var(--blood-hi)"/><small className="dim">{G.mateLine(m)}</small></div></div>
@@ -30,8 +30,8 @@ export function Partner({s,go,L}){
       <small className="dim">Gifts from the shelf below show up here once you own them.</small>
       <div className="btns">{G.ITEMS.filter(i=>i.g&&s.inv[i.id]).map(i=><button key={i.id} className="btn ghost" onClick={()=>go({t:"gift",id:i.id})}>Give {i.n.toLowerCase()} ×{s.inv[i.id]}</button>)}</div>
       {!m.married&&<div className="swap"><button className="link" onClick={()=>setSw(!sw)} aria-expanded={sw}>{sw?"Keep ":"Switch "}{sw?M.n:"partner"}</button>
-        {sw&&<div className="people tight">{G.MATES.filter(x=>x.t===M.t&&x.id!==m.id).map(x=><div className="pcard2" key={x.id}><div className="mrow"><Portrait id={x.id} size={64}/><div className="who"><b>{x.n}</b><small>{x.bio}</small></div></div>
-          <Traits x={x}/><div className="btns"><button className="btn ghost" disabled={s.cash<5000} onClick={()=>{go({t:"swapMate",id:x.id});setSw(false)}}>Move on with {x.n} · {$(5000)}</button></div></div>)}</div>}</div>}
+        {sw&&<><div className="seg sm" role="tablist">{[["girlfriend","Girlfriends"],["boyfriend","Boyfriends"]].map(([k,l])=><button key={k} role="tab" aria-selected={tab2===k} className={tab2===k?"on":""} onClick={()=>setTab2(k)}>{l}</button>)}</div><div className="people tight">{G.MATES.filter(x=>x.t===tab2&&x.id!==m.id).map(x=><div className="pcard2" key={x.id}><div className="mrow"><Portrait id={x.id} size={64}/><div className="who"><b>{x.n}</b><small>{x.bio}</small></div></div>
+          <Traits x={x}/><div className="btns"><button className="btn ghost" disabled={s.cash<5000} onClick={()=>{go({t:"swapMate",id:x.id});setSw(false)}}>Move on with {x.n} · {$(5000)}</button></div></div>)}</div></>}</div>}
       {m.married&&<small className="dim">Married. There's no switching now.</small>}</div>}
   </>);
 }
@@ -56,8 +56,7 @@ export function Profile({s,go,name,id}){
     <div className="profile">
       <div className="ph"><button className="avatar" onClick={()=>setEd(!ed)} aria-label="Change profile picture">{av?<img src={av} alt="" draggable="false"/>:<img src={IMG("logo.png")} alt="" draggable="false"/>}<i><Ic n="user"/></i></button>
         <div className="who"><b className="big">{name}</b><small>{G.rank(L)} · level {L}</small><span className="ctag" style={{"--c":C.c}}>{C.n}</span></div></div>
-      {ed&&<div className="pick"><div className="btns"><button className="btn" onClick={()=>file.current&&file.current.click()}>Choose from gallery</button>{av&&<button className="btn ghost" onClick={()=>{store.set(null);setAv(null);setEd(false)}}>Remove</button>}</div>
-        <input ref={file} type="file" accept="image/*" hidden onChange={pick}/>
+      {ed&&<div className="pick"><div className="btns"><label className="btn avatar-pick">Choose from gallery<input type="file" accept="image/*" hidden onChange={pick}/></label>{av&&<button className="btn ghost" onClick={()=>{store.set(null);setAv(null);setEd(false)}}>Remove</button>}</div>
         {AVATARS.length>0&&<div className="avgrid">{AVATARS.map(a=><button key={a} onClick={()=>choose(a)} aria-label="Use this picture"><img src={IMG(a)} alt="" loading="lazy"/></button>)}</div>}
         {err&&<small className="err">{err}</small>}</div>}
       <p className="cdesc">{C.d}{N&&<> Next: <b>{N.n}</b> at level {N.min}.</>}</p>

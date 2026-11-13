@@ -118,11 +118,11 @@ export const JOBS=[
   {id:"skim",n:"Skim a casino in Monaco",lvl:44,en:20,xp:215,p:[260000,600000],r:40,h:5,ok:"Chip by chip, so nobody saw the pile. The pit boss tipped his hat.",no:"Their security chief read your face from across the room."},
 ];
 export const HEISTS=[
-  {id:"atm",n:"Cash machine run",lvl:8,sol:5,cap:0,cd:6,en:4,p:[40000,90000],r:22,ok:"Three machines in an hour. The bank blamed a software bug.",no:"Somebody left a camera pointed at your car."},
-  {id:"jewel",n:"Jeweler's back wall",lvl:15,sol:10,cap:0,cd:12,en:6,p:[120000,260000],r:28,ok:"Went in through the shoe shop next door. Quietly.",no:"The wall was thicker than the plans said."},
-  {id:"count",n:"Casino counting room",lvl:24,sol:25,cap:2,cd:24,en:10,p:[600000,1400000],r:34,ok:"Out the service door with a laundry cart. Nobody checks the laundry.",no:"The pit boss had a button under his desk."},
-  {id:"courier",n:"Reserve courier convoy",lvl:36,sol:60,cap:6,cd:48,en:16,p:[3000000,7000000],r:40,ok:"Two trucks in, two trucks out. The third truck never knew.",no:"There was a fourth truck. Nobody told you about the fourth truck."},
-  {id:"vault",n:"Geneva vault",lvl:45,sol:90,cap:12,cd:72,en:24,p:[10000000,25000000],r:44,ok:"You spent six months planning it and ninety seconds doing it.",no:"They'd changed the locks the week before. Someone talked."},
+  {id:"atm",n:"Cash machine run",lvl:8,sol:5,cap:0,cd:30,en:4,p:[40000,90000],r:22,ok:"Three machines in an hour. The bank blamed a software bug.",no:"Somebody left a camera pointed at your car."},
+  {id:"jewel",n:"Jeweler's back wall",lvl:15,sol:10,cap:0,cd:35,en:6,p:[120000,260000],r:28,ok:"Went in through the shoe shop next door. Quietly.",no:"The wall was thicker than the plans said."},
+  {id:"count",n:"Casino counting room",lvl:24,sol:25,cap:2,cd:40,en:10,p:[600000,1400000],r:34,ok:"Out the service door with a laundry cart. Nobody checks the laundry.",no:"The pit boss had a button under his desk."},
+  {id:"courier",n:"Reserve courier convoy",lvl:36,sol:60,cap:6,cd:45,en:16,p:[3000000,7000000],r:40,ok:"Two trucks in, two trucks out. The third truck never knew.",no:"There was a fourth truck. Nobody told you about the fourth truck."},
+  {id:"vault",n:"Geneva vault",lvl:45,sol:90,cap:12,cd:45,en:24,p:[10000000,25000000],r:44,ok:"You spent six months planning it and ninety seconds doing it.",no:"They'd changed the locks the week before. Someone talked."},
 ];
 const U=s=>500+level(s)*700;
 export const EVENTS=[
@@ -184,7 +184,7 @@ export const ACH=[
   {id:"heir",n:"Dynasty",d:"Hand the family to an heir.",f:s=>s.leg>=1,rw:{cash:100000,xp:500}},
 ];
 // Badge art is one-to-one with an achievement: a design is never reused. Achievements with no art yet show a plain star until a new design is added here.
-export const BADGE={job1:"skull",job100:"fire",job1000:"onyx",win25:"guns",nw1:"money",nw10:"sapphire",nw100:"amethyst",lv50:"king",lv25:"fedora",wed:"ruby",party10:"rose",coll:"ice",trade:"bolt"};
+export const BADGE={job1:"skull",job100:"fire",job1000:"onyx",win25:"guns",nw1:"money",nw10:"sapphire",nw100:"amethyst",lv50:"king",lv25:"fedora",wed:"ruby",party10:"rose",coll:"ice",trade:"bolt",lv10:"bronze",biz6:"silver",heir:"gold"};
 export const badgeOf=id=>BADGE[id]?"badge-"+BADGE[id]+".jpg":null;
 // Omerta Coin follows the real Bitcoin price when the phone is online. Offline, it wanders around the last real price.
 const omcStep=o=>{const a=o.anchor||OMC_BASE;let r=gauss()*.0004+(a-o.p)/a*.002;if(Math.random()<.0015)r+=(Math.random()<.5?-1:1)*rnd(.02,.06);o.p=Math.max(a*.3,o.p*(1+r));o.h.push(o.p);if(o.h.length>90)o.h.shift()};
@@ -342,8 +342,8 @@ export function reduce(st,a){
     s.cash+=v;say(s,`Sold ${it.n} for ${$(v)}. A fence takes his cut.`,v);return s}
   case"upStore":{const nx=STORE[s.store+1];if(!nx)return no("That's the biggest vault there is.");if(s.cash<nx.cost)return broke();
     s.cash-=nx.cost;s.store++;say(s,`Moved everything into the ${nx.n}. Room for ${nx.slots}.`,-nx.cost);return s}
-  case"pickMate":{if(level(s)<6)return no("Not yet. You need to be level 6.");const m=MM[a.id];if(!m)return s;if(s.mpref&&s.mpref!==m.t)return no("You already told the city who you're looking for.");s.mpref=m.t;s.mate={id:m.id,aff:40,married:false,since:now};say(s,`You asked ${m.n} to dinner. ${m.n} said yes before you finished the sentence.`);return s}
-  case"swapMate":{const m=s.mate,n=MM[a.id];if(!m||!n||n.id===m.id)return s;if(m.married)return no("You're married. That's a different kind of conversation.");if(n.t!==MM[m.id].t)return no("You'll stay with your type. Pick someone else.");
+  case"pickMate":{if(level(s)<6)return no("Not yet. You need to be level 6.");const m=MM[a.id];if(!m)return s;s.mate={id:m.id,aff:40,married:false,since:now};say(s,`You asked ${m.n} to dinner. ${m.n} said yes before you finished the sentence.`);return s}
+  case"swapMate":{const m=s.mate,n=MM[a.id];if(!m||!n||n.id===m.id)return s;if(m.married)return no("You're married. That's a different kind of conversation.");
     if(s.cash<5000)return no("Moving out costs $5,000.");s.cash-=5000;const old=MM[m.id];s.mate={id:n.id,aff:30,married:false,since:now};say(s,`You told ${old.n} it wasn't working. ${n.n} heard about it before you got home.`,-5000);return s}
   case"date":{const m=s.mate;if(!m)return s;const D=a.k==="trip"?{c:60000,g:16,x:`A weekend in Mombasa. ${MM[m.id].n} didn't check a phone once.`}:{c:4000,g:6,x:`Dinner for two. ${MM[m.id].n} ordered the most expensive thing and meant it.`};
     if(s.cash<D.c)return broke();s.cash-=D.c;m.aff=Math.min(100,m.aff+D.g);s.res+=5;say(s,D.x,-D.c);return s}
@@ -392,7 +392,7 @@ export function reduce(st,a){
     if(s.crew.sol<Z.sol||s.crew.cap<Z.cap)return no(`You need ${Z.sol} soldiers${Z.cap?` and ${Z.cap} capos`:""} for this one.`);
     if(s.en<Z.en)return no("Out of energy. A point comes back every three minutes.");
     if(a.ap==="inside"){if(s.friends<4)return no("An inside man needs friends in high places. Throw a few parties first.");if(s.cash<heistCost(Z))return broke();s.cash-=heistCost(Z)}
-    spend(Z.en);s.hcd[a.id]=now+Z.cd*H;
+    spend(Z.en);s.hcd[a.id]=now+Z.cd*MIN;
     if(Math.random()*100<heistFail(s,Z,a.ap)){const l=Math.min(s.crew.sol,ri(1,Math.ceil(Z.sol/3)));s.crew.sol-=l;s.jail=now+(10+level(s)*1.5)*MIN;s.heat=Math.min(100,s.heat+25);say(s,`${Z.no} You lost ${l} men and spent ${hm(s.jail-now)} in a cell.`);return s}
     const pay=Math.round(ri(Z.p[0],Z.p[1])*{quiet:.8,loud:1.4,inside:1}[a.ap]*bonus(s));s.dirty+=pay;s.res+=Z.lvl*4;s.heat=Math.min(100,s.heat+{quiet:4,loud:16,inside:3}[a.ap]);
     say(s,`${Z.ok} +${$(pay)} dirty.`,pay);return s}

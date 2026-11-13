@@ -13,27 +13,48 @@ store.set("omerta_id",ID.id);store.set("omerta_name",ID.name);
 const TABS=[["home","Home","home"],["jobs","Work","case"],["empire","Empire","map"],["markets","Markets","trend"],["social","Social","cell"],["life","Life","glass"]];
 const KEYS=["1","2","3","4","5","6","7","8","9","Clear","0","Delete"];
 
+// Keep the layout inside the visible area when the phone keyboard opens, and restore it when it closes.
+function useKeyboard(){
+  useEffect(()=>{
+    const v=window.visualViewport,r=document.documentElement;
+    const f=()=>{const h=v?v.height:window.innerHeight,open=window.innerHeight-h>120||(window.__kb&&window.__kb());
+      r.style.setProperty("--vh",Math.round(h)+"px");r.classList.toggle("kb",!!open);
+      if(open){const m=document.querySelector(".composer textarea");if(m&&document.activeElement===m)setTimeout(()=>m.scrollIntoView({block:"end"}),30)}};
+    f();if(v){v.addEventListener("resize",f);v.addEventListener("scroll",f)}window.addEventListener("resize",f);
+    return()=>{if(v){v.removeEventListener("resize",f);v.removeEventListener("scroll",f)}window.removeEventListener("resize",f)}
+  },[]);
+}
+
 function Cover({open,unlock}){
-  const [pin,setPin]=useState(""),[bad,setBad]=useState(false),saved=store.get("omerta_pin");
+  // Each player sets their own PIN the first time. It is stored on this phone only.
+  const saved=store.get("omerta_pin");
+  const [pin,setPin]=useState(""),[bad,setBad]=useState(false),[first,setFirst]=useState(""),[msg,setMsg]=useState(""),[ask,setAsk]=useState(0);
+  const stage=saved?"enter":first?"confirm":"create";
+  const label={enter:"Enter your PIN",create:"Create a four-digit PIN",confirm:"Enter it once more"}[stage];
+  const shake=m=>{setBad(true);setMsg(m||"");setPin("");setTimeout(()=>setBad(false),500)};
   const key=k=>{
     if(k==="Clear")return setPin("");if(k==="Delete")return setPin(p=>p.slice(0,-1));if(pin.length>=4)return;
-    const n=pin+k;setPin(n);
+    const n=pin+k;setPin(n);setMsg("");
     if(n.length<4)return;
     setTimeout(()=>{
-      if(!saved){store.set("omerta_pin",n);setPin("");unlock()}
-      else if(saved===n){setPin("");unlock()}
-      else{setBad(true);setPin("");setTimeout(()=>setBad(false),500)}
+      if(stage==="create"){setFirst(n);setPin("")}
+      else if(stage==="confirm"){if(n===first){store.set("omerta_pin",n);setFirst("");setPin("");unlock()}else{setFirst("");shake("Those didn't match. Start again.")}}
+      else if(saved===n){setPin("");setAsk(0);unlock()}
+      else shake("Wrong PIN.");
     },180);
   };
+  const reset=()=>{if(ask<1)return setAsk(1);try{localStorage.removeItem("omerta_pin");localStorage.removeItem("omerta_save_v3")}catch(e){}location.reload()};
   return(<div className={"cover"+(open?" open":"")} aria-hidden={open}><div className="in">
-    <div><h1>Omertà</h1><p>{saved?"Enter your PIN":"Choose a four-digit PIN"}</p></div>
+    <div><h1>Omertà</h1><p>{label}</p><p className="pinmsg" role="status">{msg}</p></div>
     <div className="seal"><Logo size={200}/></div>
     <div className={"dots"+(bad?" bad":"")} aria-label="Passcode">{[0,1,2,3].map(i=><i key={i} className={i<pin.length?"f":""}/>)}</div>
     <div className="pad">{KEYS.map(k=><button key={k} className={k.length>1?"sm":""} onClick={()=>key(k)}>{k}</button>)}</div>
+    {saved&&<button className="link forgot" onClick={reset}>{ask?"Tap again to erase this game and start over":"Forgot PIN?"}</button>}
   </div></div>);
 }
 
 export default function App(){
+  useKeyboard();
   const [open,setOpen]=useState(false),[tab,setTab]=useState("home"),[chat,setChat]=useState([]),[toast,setToast]=useState(null),[net,setNet]=useState(false),[inbox,setInbox]=useState({}),[nm,setNm]=useState(ID.name);
   const [s,go]=useReducer(reduce,null,()=>reduce(load(),{t:"tick",now:Date.now()}));
   const sv=useRef(s);sv.current=s;

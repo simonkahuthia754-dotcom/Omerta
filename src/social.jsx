@@ -1,7 +1,7 @@
 import React,{useState,useEffect,useRef} from "react";
 import * as G from "./game.js";
 import {Ic} from "./ui.jsx";
-import {watch,put,add,pairKey,clip,ago,staffOf,seats,serverNow} from "./live.js";
+import {watch,put,add,pairKey,clip,ago,staffOf,seats,serverNow,configured,lastError,onError} from "./live.js";
 import * as C from "./clean.js";
 
 const PAPERS={
@@ -21,10 +21,11 @@ export function Social(P){
 }
 
 function Messages({s,chat,send,id,name,net,inbox,rename}){
+  const [err,setErr]=useState(lastError());useEffect(()=>onError(setErr),[]);
   const [ch,setCh]=useState("world"),[peer,setPeer]=useState(null),[on,setOn]=useState(0),[ed,setEd]=useState(null);
   useEffect(()=>watch("omerta_online",v=>setOn(C.online(v).length)),[]);
   return(<>
-    <div className="status"><span className={"pulse"+(net?" up":"")}/>{net?`Live · ${Math.max(1,on)} online`:"Offline · messages send when you reconnect"}</div>
+    <div className="status"><span className={"pulse"+(net&&configured?" up":"")}/>{!configured?"Chat is not set up yet. The game owner needs to connect a database.":net?`Live · ${Math.max(1,on)} online`:"Offline · messages send when you reconnect"}</div>{err&&<div className="status err" role="alert">{err}</div>}
     <div className="whoami">{ed===null?<><span>You appear as <b>{name}</b></span><button onClick={()=>setEd(name)}>Change</button></>:
       <><input value={ed} maxLength={16} autoFocus onChange={e=>setEd(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"){rename(ed);setEd(null)}}} aria-label="Display name"/><button onClick={()=>{rename(ed);setEd(null)}}>Save</button></>}</div>
     <div className="chips2">{[["world","World"],["dm","Direct"]].map(([k,l])=><button key={k} className={ch===k?"on":""} onClick={()=>{setCh(k);setPeer(null)}}>{l}</button>)}</div>

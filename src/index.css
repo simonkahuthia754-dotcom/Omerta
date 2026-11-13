@@ -16,7 +16,7 @@ input{cursor:text}
 :focus-visible{outline:2px solid var(--brass-hi);outline-offset:2px}
 svg.i{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 
-.stage{position:fixed;inset:0;height:100dvh;overflow:hidden;perspective:1800px;background:var(--felt)}
+.stage{position:fixed;inset:0;height:var(--vh,100dvh);overflow:hidden;perspective:1800px;background:var(--felt)}
 .book{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .8s .6s;
   background:radial-gradient(120% 60% at 50% 0,var(--felt2),var(--felt)),var(--felt)}
 .book.open{opacity:1;pointer-events:auto}
@@ -322,7 +322,12 @@ img.portrait.mate{border-radius:50%;object-fit:cover;box-shadow:0 0 0 1.5px var(
 .pill .sendb{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--brass);color:#1b1510;transition:opacity .15s,transform .1s}
 .pill .sendb .i{width:19px;height:19px;stroke-width:1.8}
 .pill .sendb:disabled{opacity:.35}.pill .sendb:not(:disabled):active{transform:scale(.92)}
-.wire.big .msgs{height:max(300px,calc(100dvh - 400px))}
+.wire.big .msgs{height:max(150px,calc(var(--vh,100dvh) - 400px))}
+.kb .tabs{display:none}
+.kb .wire.big .msgs{height:max(120px,calc(var(--vh,100dvh) - 230px))}
+.pinmsg{min-height:18px;color:var(--blood-hi);font-size:12px}
+.forgot{margin-top:10px;font-size:12px;color:var(--smoke);background:none;border:0;text-decoration:underline}
+.avatar-pick{display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
 
 .wire.big .bub,.wire.big .bub span,.composer,.composer button,.composer textarea{font-family:var(--body)}
 
