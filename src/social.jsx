@@ -45,7 +45,7 @@ function Composer({onSend,ph,scope,id,name}){
     <textarea ref={box} rows={1} value={v} maxLength={300} placeholder={ph} enterKeyHint="send" aria-label="Message" autoComplete="off" autoCorrect="on"
       onChange={e=>{const x=e.target.value.replace(/\n/g," ");setV(x);tell(!!x.trim())}} onBlur={()=>tell(false)}
       onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}}}/>
-    <button className="sendb" onClick={send} disabled={!v.trim()} aria-label="Send"><Ic n="send"/></button>
+    <button className="sendb" onPointerDown={e=>e.preventDefault()} onClick={send} disabled={!v.trim()} aria-label="Send"><Ic n="send"/></button>
   </div></div>);
 }
 
