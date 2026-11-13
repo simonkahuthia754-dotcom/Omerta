@@ -39,8 +39,9 @@ export const ITEMS=[
   {id:"necklace",n:"Diamond necklace",p:45000,s:1,pre:8,g:18,lvl:14,k:"For them",i:"ring",t:"You will be thanked for months."},
   {id:"ring",n:"Engagement ring",p:120000,s:1,pre:10,g:0,lvl:16,k:"For them",i:"ring",t:"Save it for the right night."},
   {id:"limo",n:"Armored limo",p:250000,s:4,pre:25,lvl:22,k:"Wheels",i:"car",t:"Windows that stop more than sunlight."},
+  {id:"poolhouse",img:"house-pool.jpg",n:"Pool house, Karen",p:1400000,s:0,pre:30,est:1,lvl:20,k:"Property",i:"home",t:"White walls, a quiet pool, and a gate that closes behind you."},
   {id:"penthouse",n:"Penthouse, Upper Hill",p:2200000,s:0,pre:60,est:1,lvl:28,k:"Property",i:"home",t:"Forty floors up. The cops can't see in."},
-  {id:"villa",n:"Villa on the coast",p:6500000,s:0,pre:120,est:1,lvl:36,k:"Property",i:"home",t:"Private beach, private dock, private everything."},
+  {id:"villa",img:"house-villa.jpg",n:"Villa on the coast",p:6500000,s:0,pre:120,est:1,lvl:36,k:"Property",i:"home",t:"Private beach, private dock, private everything."},
   {id:"yacht",n:"Yacht, 40 meters",p:9000000,s:0,pre:180,est:1,lvl:44,k:"Property",i:"boat",t:"Where the real conversations happen."},
 ];
 export const SHELVES=["Pockets","Cellar","For them","Wheels","Property"];
@@ -168,12 +169,10 @@ export const ACH=[
   {id:"lv50",n:"Godfather",d:"Reach level 50.",f:s=>level(s)>=50,rw:{cash:20000000,xp:0}},
   {id:"heir",n:"Dynasty",d:"Hand the family to an heir.",f:s=>s.leg>=1,rw:{cash:100000,xp:500}},
 ];
-// Which badge art each achievement wears. Five designs for now; more can be added by dropping a file in public/img and listing it here.
-export const BADGE={job1:"fire",job100:"fire",job1000:"fire",turf3:"fire",win25:"fire",raid:"fire",
-  biz1:"money",biz6:"money",nw1:"money",nw10:"money",nw100:"money",
-  streak7:"bolt",trade:"bolt",coin1:"bolt",
-  lv10:"sapphire",lv25:"sapphire",lv50:"sapphire",
-  coll:"ice",wed:"ice",party10:"ice",heir:"ice"};
+// Which badge art each achievement wears. Thirteen designs for now; more can be added by dropping a file in public/img and listing it here.
+export const BADGE={job1:"skull",job100:"fire",job1000:"onyx",turf3:"guns",win25:"fire",raid:"skull",
+  biz1:"money",nw1:"money",biz6:"fedora",lv25:"fedora",nw10:"sapphire",lv10:"sapphire",nw100:"king",lv50:"king",
+  streak7:"bolt",trade:"bolt",coin1:"bolt",coll:"ice",heir:"amethyst",wed:"ruby",party10:"rose"};
 export const badgeOf=id=>"badge-"+(BADGE[id]||"sapphire")+".jpg";
 // Omerta Coin follows the real Bitcoin price when the phone is online. Offline, it wanders around the last real price.
 const omcStep=o=>{const a=o.anchor||OMC_BASE;let r=gauss()*.0004+(a-o.p)/a*.002;if(Math.random()<.0015)r+=(Math.random()<.5?-1:1)*rnd(.02,.06);o.p=Math.max(a*.3,o.p*(1+r));o.h.push(o.p);if(o.h.length>90)o.h.shift()};

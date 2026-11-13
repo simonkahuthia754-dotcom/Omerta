@@ -186,7 +186,7 @@ export function Life({s,go,id,name}){
     <Sec t="Collections" r={`+${Math.round(col.b*100)}% to all income`}/>
     <div className="list">{G.COLL.map(c=>{const n=c.need.filter(k=>s.inv[k]>0||s.est[k]).length,dn=n===c.need.length;return<div className="job" key={c.id}><div className="who"><b>{c.n}{dn&&" ✓"}</b><small>{c.d}</small><Meter v={n} max={c.need.length}/></div><b className="amt">+{c.b*100}%</b></div>})}</div>
     {G.SHELVES.map(sh=><div key={sh}><Sec t={sh}/><div className="shelf">{G.ITEMS.filter(i=>i.k===sh).map(it=>{const have=it.est?!!s.est[it.id]:(s.inv[it.id]||0),lk=L<it.lvl;return(
-      <div className={"card"+(lk?" lk":"")} key={it.id}><Ic n={it.i}/><b>{it.n}</b><div className="p">{$(it.p)}</div><small>{lk?<Lock l={it.lvl}/>:have?`Owned${it.est?"":": "+have}`:it.t}</small>
+      <div className={"card"+(lk?" lk":"")+(it.img?" wide":"")} key={it.id}>{it.img?<img className="cardimg" src={IMG(it.img)} alt="" loading="lazy" draggable="false"/>:<Ic n={it.i}/>}<b>{it.n}</b><div className="p">{$(it.p)}</div><small>{lk?<Lock l={it.lvl}/>:have?`Owned${it.est?"":": "+have}`:it.t}</small>
         {!lk&&<div className="btns tight"><button className="buy" disabled={s.cash<it.p||(it.est&&have)} onClick={()=>go({t:"buy",id:it.id})}>{it.est&&have?"Owned":s.cash<it.p?"Can't afford":"Buy"}</button>
           {have?<button className="sell" onClick={()=>go({t:"sell",id:it.id})}>Sell</button>:null}</div>}</div>)})}</div></div>)}
     <Sec t="Achievements" r={`${Object.keys(s.ach).length} of ${G.ACH.length}`}/>

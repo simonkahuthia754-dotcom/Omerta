@@ -61,10 +61,10 @@ export function Skyline({h=150,moon=true}){
 }
 
 const HUE={isa:"#8c1c24",amara:"#7d6330",marco:"#2d4a6b",dante:"#3d4d3a"};
-export const Portrait=({id,size=64})=>(<svg width={size} height={size} viewBox="0 0 64 64" aria-hidden="true" className="portrait">
+export const Portrait=({id,size=64})=>{const [bad,setBad]=useState(false);return bad?(<svg width={size} height={size} viewBox="0 0 64 64" aria-hidden="true" className="portrait">
   <defs><radialGradient id={"pg"+id} cx=".5" cy=".3"><stop offset="0" stopColor={HUE[id]||"#444"}/><stop offset="1" stopColor="#0b1d16"/></radialGradient></defs>
   <circle cx="32" cy="32" r="31" fill={`url(#pg${id})`} stroke="#c9a24d" strokeWidth="1.2"/>
   <circle cx="32" cy="25" r="9" fill="#ebe3d0" opacity=".85"/><path d="M13 58c2-14 10-19 19-19s17 5 19 19z" fill="#ebe3d0" opacity=".85"/>
-</svg>);
+</svg>):<img className="portrait mate" src={IMG("mate-"+id+".jpg")} width={size} height={size} alt="" draggable="false" onError={()=>setBad(true)}/>};
 
 export const Meter=({v,max=100,c})=><div className="meter"><i style={{width:Math.max(0,Math.min(100,v/max*100))+"%",background:c}}/></div>;
