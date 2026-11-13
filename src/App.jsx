@@ -49,7 +49,7 @@ export default function App(){
   useEffect(()=>{let on=1;const pull=()=>fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd").then(r=>r.json()).then(j=>{const p=j&&j.bitcoin&&j.bitcoin.usd;if(on&&p)go({t:"omcLive",p,now:Date.now()})}).catch(()=>{});
     pull();const t=setInterval(pull,90000);return()=>{on=0;clearInterval(t)}},[]);
   useEffect(()=>{if(!s.toast)return;setToast(s.toast.x);const t=setTimeout(()=>setToast(null),3800);return()=>clearTimeout(t)},[s.toast&&s.toast.k]);
-  const send=text=>add("omerta_chat",{username:ID.name,uid:ID.id,flag:"🇰🇪",text,timestamp:Date.now()});
+  const send=({text,gif})=>add("omerta_chat",{username:ID.name,uid:ID.id,flag:"🇰🇪",text:text||"",...(gif?{gif}:{}),timestamp:Date.now()});
   const rename=n=>{n=n.replace(/[^\w ]/g,"").trim().slice(0,16).replace(/ /g,"_");if(n.length<3)return;ID.name=n;store.set("omerta_name",n);setNm(n);put("omerta_online/"+ID.id,{n,t:Date.now()})};
   const P={s,go,chat,send,net,inbox,rename,id:ID.id,name:nm},scr=useRef(null);
   useEffect(()=>{if(scr.current)scr.current.scrollTop=0},[tab]);

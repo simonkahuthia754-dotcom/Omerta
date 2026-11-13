@@ -35,14 +35,15 @@ export const ITEMS=[
   {id:"pistol",n:"Gold pistol",p:2500,s:1,pre:3,lvl:6,k:"Cellar",i:"pistol",t:"For show. Mostly."},
   {id:"bag",n:"Designer handbag",p:9000,s:1,pre:3,g:10,lvl:8,k:"For them",i:"bag",t:"Comes in its own dust bag. Has its own dust bag."},
   {id:"case",n:"Briefcase",p:10000,s:1,pre:3,lvl:10,k:"Cellar",i:"case",t:"Nobody asks what's inside."},
-  {id:"car",n:"Sports car",p:50000,s:3,pre:10,lvl:12,k:"Wheels",i:"car",t:"Fast, and very easy to spot."},
+  {id:"car",img:"car-sport.jpg",n:"Sports car",p:50000,s:3,pre:10,lvl:12,k:"Wheels",i:"car",t:"Fast, and very easy to spot."},
   {id:"necklace",n:"Diamond necklace",p:45000,s:1,pre:8,g:18,lvl:14,k:"For them",i:"ring",t:"You will be thanked for months."},
   {id:"ring",n:"Engagement ring",p:120000,s:1,pre:10,g:0,lvl:16,k:"For them",i:"ring",t:"Save it for the right night."},
-  {id:"limo",n:"Armored limo",p:250000,s:4,pre:25,lvl:22,k:"Wheels",i:"car",t:"Windows that stop more than sunlight."},
+  {id:"limo",img:"limo.jpg",n:"Armored limo",p:250000,s:4,pre:25,lvl:22,k:"Wheels",i:"car",t:"Windows that stop more than sunlight."},
+  {id:"hyper",img:"car-hyper.jpg",n:"Hypercar",p:1800000,s:5,pre:90,lvl:34,k:"Wheels",i:"car",t:"Two seats, one exhaust note, no chance of staying quiet."},
   {id:"poolhouse",img:"house-pool.jpg",n:"Pool house, Karen",p:1400000,s:0,pre:30,est:1,lvl:20,k:"Property",i:"home",t:"White walls, a quiet pool, and a gate that closes behind you."},
-  {id:"penthouse",n:"Penthouse, Upper Hill",p:2200000,s:0,pre:60,est:1,lvl:28,k:"Property",i:"home",t:"Forty floors up. The cops can't see in."},
+  {id:"penthouse",img:"penthouse.jpg",n:"Penthouse, Upper Hill",p:2200000,s:0,pre:60,est:1,lvl:28,k:"Property",i:"home",t:"Forty floors up. The cops can't see in."},
   {id:"villa",img:"house-villa.jpg",n:"Villa on the coast",p:6500000,s:0,pre:120,est:1,lvl:36,k:"Property",i:"home",t:"Private beach, private dock, private everything."},
-  {id:"yacht",n:"Yacht, 40 meters",p:9000000,s:0,pre:180,est:1,lvl:44,k:"Property",i:"boat",t:"Where the real conversations happen."},
+  {id:"yacht",img:"yacht.jpg",n:"Yacht, 40 meters",p:9000000,s:0,pre:180,est:1,lvl:44,k:"Property",i:"boat",t:"Where the real conversations happen."},
 ];
 export const SHELVES=["Pockets","Cellar","For them","Wheels","Property"];
 export const COLL=[

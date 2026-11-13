@@ -11,8 +11,6 @@ const Lock=({l})=><span className="lockn"><Ic n="lock"/>Level {l}</span>;
 export function Home({s,go,chat,send,id}){
   const now=s.t,w=G.worth(s),xp=G.xpBar(s),b=G.board(s,now);
   const ready=Object.keys(s.biz).reduce((a,k)=>a+G.till(s,k,now),0),trib=G.tribute(s,now),day=new Date(now).toDateString()!==s.dl.d;
-  const [m,setM]=useState(""),end=useRef(null);
-  useEffect(()=>{if(end.current)end.current.scrollTop=end.current.scrollHeight},[chat.length]);
   const E=s.ev&&G.EM[s.ev.id];
   const reward=50000+Math.round(s.heat)*9000;
   return<>
@@ -42,9 +40,6 @@ export function Home({s,go,chat,send,id}){
       <div className="btns" style={{marginTop:12}}><button className="btn ghost dark" onClick={()=>go({t:"lay"})}>Lay low · {$(G.layCost(s))}</button></div></div>
     <Sec t="Latest" r="Your story"/>
     <div className="feed">{s.log.slice(0,6).map((l,i)=><div key={i} className={"fl2"+(l.a>0?" up":l.a<0?" dn":"")}><span>{l.x}</span>{l.a?<b>{l.a>0?"+":""}{$(l.a)}</b>:null}</div>)}</div>
-    <Sec t="World wire" r="Live"/>
-    <div className="wire"><div className="msgs" ref={end}>{chat.length===0?<em>Quiet tonight. Say something.</em>:chat.map((c,i)=><div key={i}><b>{c.flag} {c.username}</b> {c.text}</div>)}</div>
-      <div className="say"><input value={m} onChange={e=>setM(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&m.trim()){send(m.trim());setM("")}}} placeholder="Message the world" aria-label="Message"/><button onClick={()=>{if(m.trim()){send(m.trim());setM("")}}}>Send</button></div></div>
   </>;
 }
 const DISTAVG=s=>G.DIST.reduce((a,d)=>a+s.dist[d.id],0)/G.DIST.length;

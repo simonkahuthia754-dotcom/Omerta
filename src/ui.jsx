@@ -23,6 +23,8 @@ const D={
   cell:"M5 3h14v18H5zM9 3v18M13 3v18M17 3v18",
   lock:"M6 11h12v9H6zM8 11V8a4 4 0 018 0v3",
   star:"M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z",
+  send:"M3.5 11.5L20 4l-5.5 16-3-6.5zM11.5 13.5L20 4",
+  smile:"M12 3a9 9 0 100 18 9 9 0 000-18zM8.5 14.5c1 1.5 2.2 2.2 3.5 2.2s2.5-.7 3.5-2.2M9 9.5v.5M15 9.5v.5",
   user:"M12 4a4 4 0 100 8 4 4 0 000-8zM4 21a8 8 0 0116 0",
 };
 export const Ic=({n,...p})=><svg className="i" viewBox="0 0 24 24" aria-hidden="true" {...p}><path d={D[n]||D.star}/></svg>;

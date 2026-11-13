@@ -2,10 +2,10 @@
   "rules": {
     ".read": false,
     ".write": false,
-    "omerta_chat": {".read": true, "$m": {".write": "!data.exists()", ".validate": "newData.hasChildren(['username','text','timestamp']) && newData.child('text').isString() && newData.child('text').val().length <= 200"}},
+    "omerta_chat": {".read": true, "$m": {".write": "!data.exists()", ".validate": "newData.hasChildren(['username','timestamp']) && (!newData.child('text').exists() || newData.child('text').val().length <= 300) && (!newData.child('gif').exists() || newData.child('gif').val().length <= 400)"}},
     "omerta_online": {".read": true, "$id": {".write": true}},
     "omerta_inbox": {"$id": {".read": true, ".write": true}},
-    "omerta_dm": {"$pair": {".read": true, "$m": {".write": "!data.exists()", ".validate": "newData.child('text').val().length <= 300"}}},
+    "omerta_dm": {"$pair": {".read": true, "$m": {".write": "!data.exists()", ".validate": "(!newData.child('text').exists() || newData.child('text').val().length <= 300)"}}},
     "omerta_news": {".read": true, "$paper": {"apps": {"$id": {".write": true}}, "votes": {"$c": {"$v": {".write": true}}}, "likes": {"$p": {"$v": {".write": true}}},
       "posts": {"$p": {".write": "!data.exists()", ".validate": "newData.child('title').val().length <= 80 && newData.child('body').val().length <= 700"}}}}
   }

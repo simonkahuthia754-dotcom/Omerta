@@ -270,8 +270,6 @@ svg.i{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.5;stroke
 .wire.big .msgs{height:min(46vh,380px)}
 .msgs small{margin-left:8px;font-size:11px;color:var(--smoke)}
 .msgs .me b{color:#fff}
-.bub{align-self:flex-start;max-width:82%;padding:8px 12px;border-radius:14px 14px 14px 4px;background:rgba(255,255,255,.07)}
-.bub.me{align-self:flex-end;border-radius:14px 14px 4px 14px;background:rgba(201,162,77,.2)}
 .thead{display:flex;align-items:baseline;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line)}
 .thead button{color:var(--brass-hi);font-weight:600}.thead small{color:var(--smoke);margin-left:auto}
 .say.bare{border:1px solid var(--line);border-radius:10px;overflow:hidden}
@@ -308,3 +306,43 @@ img.portrait.mate{border-radius:50%;object-fit:cover;box-shadow:0 0 0 1.5px var(
 .card.wide{grid-column:1/-1}
 .card .cardimg{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px;display:block}
 .card.lk .cardimg{filter:grayscale(1) brightness(.5)}
+
+/* chat composer and bubbles */
+.wire.big{border-radius:18px;display:flex;flex-direction:column}
+.wire.big .msgs{padding:14px 12px;gap:8px}
+.bub{display:flex;flex-direction:column;gap:3px;align-self:flex-start;max-width:84%;padding:8px 12px 6px;border-radius:16px 16px 16px 5px;background:rgba(255,255,255,.07);font-size:15px;line-height:1.4;overflow-wrap:anywhere}
+.bub.me{align-self:flex-end;border-radius:16px 16px 5px 16px;background:linear-gradient(160deg,rgba(201,162,77,.34),rgba(201,162,77,.2))}
+.bub .nm{font-size:12px;color:var(--brass-hi);font-weight:600}
+.bub small{align-self:flex-end;margin:0;font-size:10.5px;color:var(--smoke)}
+.bub .gif{display:block;max-width:100%;max-height:190px;border-radius:10px;object-fit:contain;background:rgba(0,0,0,.25)}
+.bub.gifm{padding:6px 6px 5px}
+.composer{position:relative;padding:8px 10px 10px;border-top:1px solid var(--line);background:rgba(0,0,0,.18)}
+.pill{display:flex;align-items:flex-end;gap:4px;padding:5px 5px 5px 8px;border:1px solid var(--line);border-radius:26px;background:rgba(255,255,255,.05)}
+.pill:focus-within{border-color:var(--brass)}
+.pill textarea{flex:1;min-width:0;border:0;outline:0;resize:none;background:transparent;color:inherit;font:inherit;font-size:16px;line-height:1.35;padding:8px 4px;max-height:96px}
+.pill textarea::placeholder{color:var(--smoke)}
+.pill .tool{flex:none;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:var(--smoke)}
+.pill .tool .i{width:22px;height:22px}
+.pill .tool.on{color:var(--brass-hi);background:rgba(201,162,77,.16)}
+.pill .gifb{font-family:var(--body);font-weight:700;font-size:11px;line-height:1;letter-spacing:.04em;border:1.5px solid currentColor;border-radius:8px;width:38px;height:24px;align-self:center}
+.pill .sendb{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:var(--brass);color:#1b1510;transition:opacity .15s,transform .1s}
+.pill .sendb .i{width:19px;height:19px;stroke-width:1.8}
+.pill .sendb:disabled{opacity:.35}.pill .sendb:not(:disabled):active{transform:scale(.92)}
+.pane{margin-bottom:8px;border:1px solid var(--line);border-radius:14px;background:var(--felt2);max-height:230px;overflow-y:auto}
+.pane.emo{display:grid;grid-template-columns:repeat(8,1fr);padding:6px}
+.pane.emo button{font-size:24px;line-height:1;padding:7px 0;border-radius:8px}
+.pane.emo button:active{background:rgba(201,162,77,.2)}
+.gifp{padding:10px;display:flex;flex-direction:column;gap:8px}
+.gifp input{padding:9px 12px;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.05);color:inherit;font-size:15px;min-width:0}
+.ggrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.ggrid button{aspect-ratio:1;border-radius:8px;overflow:hidden;background:rgba(0,0,0,.3)}
+.ggrid img{width:100%;height:100%;object-fit:cover}
+.glink{display:flex;gap:8px}.glink input{flex:1}
+.glink button{padding:0 16px;border-radius:18px;background:var(--brass);color:#1b1510;font-weight:600}
+.gifp em{color:var(--smoke);font-style:normal;grid-column:1/-1;padding:8px}
+.wire.big .msgs{height:max(220px,calc(100dvh - 440px))}
+.composer .pane{position:absolute;left:10px;right:10px;bottom:calc(100% - 2px);margin:0;z-index:5;box-shadow:0 -10px 30px -12px #000}
+
+.wire.big .bub,.wire.big .bub span,.composer,.composer button,.composer textarea{font-family:var(--body)}
+.gifp button,.gifp input{font-family:var(--body);font-size:15px}
+.gifp .err{font-size:13px;font-family:var(--body)}
