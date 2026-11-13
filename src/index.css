@@ -407,15 +407,3 @@ img.portrait.mate{border-radius:50%;object-fit:cover;box-shadow:0 0 0 1.5px var(
 .odots{display:flex;gap:6px;margin:2px 0 8px}.odots i{flex:1;height:5px;border-radius:3px;background:var(--line)}.odots i.f{background:var(--brass-hi)}.odots i.end{margin-right:8px}
 @media (pointer:coarse){.rarrow{display:none}}
 @media (pointer:fine){.rail{padding-left:36px;padding-right:36px}}
-.klist{display:flex;flex-direction:column;gap:8px;margin:4px 20px 14px}
-.kitem{border:1px solid var(--line);border-radius:12px;background:rgba(0,0,0,.2);overflow:hidden}
-.kitem.open{border-color:var(--brass-lo)}
-.krow{display:flex;align-items:center;gap:10px;width:100%;padding:13px 14px;color:var(--cream,#eadfc6);font-size:15px;text-align:left}
-.krow span{flex:1;font-weight:500}.krow small{color:var(--smoke);font-size:12px}.krow i{font-style:normal;color:var(--brass-hi);width:16px;text-align:center}
-.kitem .railwrap{margin:0}.kitem .rail{padding:2px 14px 12px}
-
-/* keyboard open: only the message panel, filling the visible screen */
-.kb .bar,.kb .tabs{display:none}
-.kb .wire.big{position:fixed;inset:0 0 auto 0;height:var(--vh,100dvh);margin:0;border:0;border-radius:0;z-index:12;background:var(--felt);padding-top:env(safe-area-inset-top)}
-.kb .wire.big .msgs{flex:1;height:auto;min-height:0}
-.kb .wire.big .thead{padding-top:8px}

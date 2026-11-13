@@ -17,10 +17,10 @@ const Art=({id,label})=>ART.has(id)?<img className="eart" src={IMG("eco-"+id+".j
 const left=ms=>G.hm(ms);
 
 function Goods({s,go,W}){
-  const L=G.level(s),[sec,setSec]=useState("tr"),[kind,setKind]=useState(""),[busy,setBusy]=useState(""),[,tk]=useState(0);
+  const L=G.level(s),[sec,setSec]=useState("tr"),[kind,setKind]=useState("tr_0"),[busy,setBusy]=useState(""),[,tk]=useState(0);
   useEffect(()=>{const h=setInterval(()=>tk(x=>x+1),1000);return()=>clearInterval(h)},[]);
-  const S=SM[sec],kinds=KINDS.filter(k=>k.sec===sec),now=serverNow();
-  const pick=id=>{setSec(id);setKind("")};
+  const S=SM[sec],kinds=KINDS.filter(k=>k.sec===sec),K=kinds.find(k=>k.id===kind)||kinds[0],now=serverNow();
+  const pick=id=>{setSec(id);setKind(KINDS.find(k=>k.sec===id).id)};
   const buy=async it=>{if(busy)return;if(s.cash<it.p)return go({t:"ecoBuy",id:it.id});setBusy(it.id);
     const r=await claimStock(it);setBusy("");if(r.ok)go({t:"ecoBuy",id:it.id});else go({t:"note",x:r.err?"Couldn't reach the supplier. Try again.":"Someone else just took the last one."})};
   const own=Object.entries(s.eco||{}).reduce((a,[k,q])=>a+q,0);
@@ -28,55 +28,51 @@ function Goods({s,go,W}){
     <div className="panel"><div className="kv"><span>Goods and holdings</span><b>{own}</b></div><div className="kv"><span>Pays you</span><b>{$(Math.round((ecoIncome(s)+landIncome(s))*G.bonus(s)))} / hour</b></div>
       <small className="dim">Stock is shared by every player. Each batch is limited, the better the goods the smaller the batch, and a sold-out batch is back after 3 hours.</small></div>
     <Rail cls="chips">{SECTORS.map(x=><button key={x.id} className={"rchip"+(x.id===sec?" on":"")+(L<x.lvl?" lk":"")} onClick={()=>pick(x.id)}>{x.n}{L<x.lvl&&<i>L{x.lvl}</i>}</button>)}</Rail>
-    <div className="klist">{kinds.map(k=>{const open=k.id===kind,n=ITEMS_E.filter(i=>i.kind===k.id).reduce((a,i)=>a+((s.eco||{})[i.id]||0),0);return(
-      <div className={"kitem"+(open?" open":"")} key={k.id}>
-        <button className="krow" onClick={()=>setKind(open?"":k.id)} aria-expanded={open}><span>{k.n}</span><small>{n?`${n} owned`:`${k.names.length} tiers`}</small><i aria-hidden="true">{open?"–":"+"}</i></button>
-        {open&&<Rail cls="cards">{ITEMS_E.filter(i=>i.kind===k.id).map(it=>{const sh=shelf(it,W.stock[it.id],now),lk=L<it.lvl,q=(s.eco||{})[it.id]||0;return(
-          <div className={"ecard"+(lk?" lk":"")+(sh.left===0?" out":"")} key={it.id}><Art id={it.id} label={it.n}/>
-            <span className={"tier t"+it.t}>{TIERS[it.t]}</span><b>{it.n}</b>
-            <div className="kv"><span>Price</span><b>{$(it.p)}</b></div><div className="kv"><span>Pays</span><b>{$(Math.round(it.y))}/hr</b></div>
-            <small className="stk">{lk?`Unlocks at level ${it.lvl}`:sh.left>0?`${sh.left.toLocaleString("en-US")} of ${it.batch.toLocaleString("en-US")} left`:`Sold out. Next batch in ${left(sh.out)}`}</small>
-            {q>0&&<small className="own">You own {q}</small>}
-            <button className="btn" disabled={lk||sh.left===0||busy===it.id||s.cash<it.p} onClick={()=>buy(it)}>{sh.left===0?"Sold out":s.cash<it.p?"Not enough cash":"Buy"}</button></div>)})}</Rail>}
-      </div>)})}</div>
+    <Rail cls="chips sub">{kinds.map(k=><button key={k.id} className={"rchip sm"+(k.id===K.id?" on":"")} onClick={()=>setKind(k.id)}>{k.n}</button>)}</Rail>
+    <Rail cls="cards">{ITEMS_E.filter(i=>i.kind===K.id).map(it=>{const sh=shelf(it,W.stock[it.id],now),lk=L<it.lvl,q=(s.eco||{})[it.id]||0;return(
+      <div className={"ecard"+(lk?" lk":"")+(sh.left===0?" out":"")} key={it.id}><Art id={it.id} label={it.n}/>
+        <span className={"tier t"+it.t}>{TIERS[it.t]}</span><b>{it.n}</b><small>{K.n}</small>
+        <div className="kv"><span>Price</span><b>{$(it.p)}</b></div><div className="kv"><span>Pays</span><b>{$(Math.round(it.y))}/hr</b></div>
+        <small className="stk">{lk?`Unlocks at level ${it.lvl}`:sh.left>0?`${sh.left.toLocaleString("en-US")} of ${it.batch.toLocaleString("en-US")} left`:`Sold out. Next batch in ${left(sh.out)}`}</small>
+        {q>0&&<small className="own">You own {q}</small>}
+        <button className="btn" disabled={lk||sh.left===0||busy===it.id||s.cash<it.p} onClick={()=>buy(it)}>{sh.left===0?"Sold out":s.cash<it.p?"Not enough cash":"Buy"}</button></div>)})}</Rail>
   </>);
 }
 
-export function Territory({s,go,W,id,name}){
-  const L=G.level(s),[tier,setTier]=useState(-1),[busy,setBusy]=useState("");
+function Cities({s,go,W,id,name}){
+  const L=G.level(s),[tier,setTier]=useState(0),[busy,setBusy]=useState("");
   const me={id,name,pw:G.power(s)};
-  const act=async(P,how,t)=>{if(busy)return;const rec=W.land[P.id];setBusy(P.id);
+  const act=async(P,how)=>{if(busy)return;const rec=W.land[P.id];setBusy(P.id);
     if(how==="win"){if(s.en<12){setBusy("");return go({t:"landFight",id:P.id,win:false})}
-      const they=(rec?rec.pw:0)+t*15+10,odds=(me.pw+1)/((me.pw+1)+they*1.2);
+      const they=(rec?rec.pw:0)+tier*15+10,odds=(me.pw+1)/((me.pw+1)+they*1.2);
       if(Math.random()>=odds){go({t:"landFight",id:P.id,win:false});setBusy("");return}
       const r=await claimLand(P,me,"win");setBusy("");if(r.ok){go({t:"landFight",id:P.id,win:true});go({t:"landBuy",id:P.id,how:"win",price:rec?rec.p:P.p})}else go({t:"note",x:"Somebody beat you to it."});return}
     const price=how==="buy"?P.p:takeoverPrice(rec.p);if(s.cash<price){setBusy("");return go({t:"landBuy",id:P.id,how,price})}
     const r=await claimLand(P,me,how,rec&&rec.p);setBusy("");if(r.ok)go({t:"landBuy",id:P.id,how,price});else go({t:"note",x:r.err?"Couldn't reach the land office. Try again.":"It changed hands while you were deciding."})};
+  const places=LAND.filter(p=>p.t===tier),T=LTIERS[tier];
   return(<>
-    <Sec t="Territory" r={W.solo?"Solo mode":"Shared"}/>
-    {W.solo&&<p className="empty">The shared world isn't connected yet, so ownership runs on this phone only.</p>}
-    <div className="panel"><div className="kv"><span>Places you hold</span><b>{Object.keys(s.land||{}).length}</b></div><div className="kv"><span>Pays you</span><b>{$(Math.round(landIncome(s)*G.bonus(s)))} / hour</b></div>
+    <div className="panel"><div className="kv"><span>Places you hold</span><b>{Object.keys(s.land||{}).length}</b></div>
       <small className="dim">One map for everyone. If a player holds the whole capital, you can't have it for free: pay three times what they paid, or take it with your crew.</small></div>
-    <div className="klist">{LTIERS.map((T,i)=>{const open=i===tier,held=LAND.filter(p=>p.t===i&&s.land&&s.land[p.id]).length;return(
-      <div className={"kitem"+(open?" open":"")} key={T[0]}>
-        <button className="krow" onClick={()=>setTier(open?-1:i)} aria-expanded={open}><span>{T[0]}</span><small>{L<T[2]?`Level ${T[2]}`:held?`${held} held`:`${LAND.filter(p=>p.t===i).length} places`}</small><i aria-hidden="true">{open?"–":"+"}</i></button>
-        {open&&<Rail cls="cards">{LAND.filter(p=>p.t===i).map(P=>{const rec=W.land[P.id],mine=s.land&&s.land[P.id],lk=L<T[2],price=rec?takeoverPrice(rec.p):P.p;
-          const they=(rec?rec.pw:0)+i*15+10,odds=Math.round((me.pw+1)/((me.pw+1)+they*1.2)*100);return(
-          <div className={"ecard land"+(lk?" lk":"")} key={P.id}><div className="eart ph land" aria-hidden="true"><span>{P.n.slice(0,2)}</span></div>
-            <b>{P.n}</b><small className="stk">{mine?"Yours":rec?`Held by ${rec.nm}`:"Unclaimed"}</small>
-            <div className="kv"><span>{rec&&!mine?"Buyout":"Price"}</span><b>{$(price)}</b></div><div className="kv"><span>Pays</span><b>{$(Math.round(landRate({p:mine?mine.p:rec?rec.p:P.p})))}/hr</b></div>
-            {lk?<small className="stk">Unlocks at level {T[2]}</small>:mine?<small className="own">You hold this</small>:rec?
-              <div className="btns tight"><button className="btn" disabled={busy===P.id||s.cash<price} onClick={()=>act(P,"buyout",i)}>Buy out</button><button className="btn ghost" disabled={busy===P.id} onClick={()=>act(P,"win",i)}>Take it · {odds}%</button></div>
-              :<button className="btn" disabled={busy===P.id||s.cash<price} onClick={()=>act(P,"buy",i)}>{s.cash<price?"Not enough cash":"Buy"}</button>}</div>)})}</Rail>}
-      </div>)})}</div>
+    <Rail cls="chips">{LTIERS.map((x,i)=><button key={x[0]} className={"rchip"+(i===tier?" on":"")+(L<x[2]?" lk":"")} onClick={()=>setTier(i)}>{x[0]}{L<x[2]&&<i>L{x[2]}</i>}</button>)}</Rail>
+    <Rail cls="cards">{places.map(P=>{const rec=W.land[P.id],mine=s.land&&s.land[P.id],lk=L<T[2],price=rec?takeoverPrice(rec.p):P.p;
+      const they=(rec?rec.pw:0)+tier*15+10,odds=Math.round((me.pw+1)/((me.pw+1)+they*1.2)*100);return(
+      <div className={"ecard land"+(lk?" lk":"")} key={P.id}><div className="eart ph land" aria-hidden="true"><span>{P.n.slice(0,2)}</span></div>
+        <span className="tier t2">{T[0]}</span><b>{P.n}</b>
+        <small className="stk">{mine?"Yours":rec?`Held by ${rec.nm}`:"Unclaimed"}</small>
+        <div className="kv"><span>{rec&&!mine?"Buyout":"Price"}</span><b>{$(price)}</b></div><div className="kv"><span>Pays</span><b>{$(Math.round(landRate({p:mine?mine.p:rec?rec.p:P.p})))}/hr</b></div>
+        {lk?<small className="stk">Unlocks at level {T[2]}</small>:mine?<small className="own">You hold this</small>:rec?
+          <div className="btns tight"><button className="btn" disabled={busy===P.id||s.cash<price} onClick={()=>act(P,"buyout")}>Buy out</button><button className="btn ghost" disabled={busy===P.id} onClick={()=>act(P,"win")}>Take it · {odds}%</button></div>
+          :<button className="btn" disabled={busy===P.id||s.cash<price} onClick={()=>act(P,"buy")}>{s.cash<price?"Not enough cash":"Buy"}</button>}</div>)})}</Rail>
   </>);
 }
 
 export function Economy(P){
+  const [v,setV]=useState("goods");
   return(<>
     <Sec t="Economy" r={P.W.solo?"Solo mode":"Shared"}/>
-    {P.W.solo&&<p className="empty">The shared world isn't connected yet, so stock runs on this phone only.</p>}
-    <Goods {...P}/>
+    {P.W.solo&&<p className="empty">The shared world isn't connected yet, so stock and cities run on this phone only.</p>}
+    <div className="seg" style={{margin:"0 20px 12px"}}>{[["goods","Goods"],["cities","Cities"]].map(([k,l])=><button key={k} className={v===k?"on":""} onClick={()=>setV(k)}>{l}</button>)}</div>
+    {v==="goods"?<Goods {...P}/>:<Cities {...P}/>}
   </>);
 }
 

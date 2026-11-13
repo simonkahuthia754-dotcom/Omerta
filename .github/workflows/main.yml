@@ -40,12 +40,6 @@ jobs:
           cp -r assets/android/res/. android/app/src/main/res/
           sed -i 's/#FFFFFF/#000000/' android/app/src/main/res/values/ic_launcher_background.xml
 
-      - name: Let the keyboard push the screen up instead of covering the message box
-        run: |
-          M=android/app/src/main/AndroidManifest.xml
-          if grep -q windowSoftInputMode "$M"; then sed -i 's/android:windowSoftInputMode="[^"]*"/android:windowSoftInputMode="adjustResize"/' "$M"; else sed -i 's/<activity /<activity android:windowSoftInputMode="adjustResize" /' "$M"; fi
-          grep -c adjustResize "$M"
-
       - name: Sync web build into the Android project
         run: npx cap sync android
 
