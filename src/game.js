@@ -1,13 +1,15 @@
+import {EM as EI,LM,ecoIncome,ecoValue,landIncome,takeoverPrice} from "./economy.js";
 // Omertà rules. The UI never edits state directly; everything goes through reduce().
 export const OMC_BASE=73446,OMC_FEE=.005,OMC_CAP=21e6;
 export const KEY="omerta_save_v3", H=36e5, MIN=6e4, TICK=2500, REGEN=3*MIN, XPK=55, XPE=1.9;
 let NOW=0; const clock=()=>NOW||Date.now();
 const rnd=(a,b)=>a+Math.random()*(b-a), ri=(a,b)=>Math.floor(rnd(a,b+1)), pick=a=>a[ri(0,a.length-1)];
 const gauss=()=>{let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(6.2832*v)};
-export const $=n=>{const a=Math.abs(n);return(n<0?"-":"")+"$"+(a>=1e9?(a/1e9).toFixed(2)+"B":a>=1e7?(a/1e6).toFixed(1)+"M":a>=1e6?(a/1e6).toFixed(2)+"M":Math.round(a).toLocaleString("en-US"))};
+export const $=n=>{const a=Math.abs(n);return(n<0?"-":"")+"$"+(a>=1e18?(a/1e18).toFixed(2)+"Qi":a>=1e15?(a/1e15).toFixed(2)+"Qa":a>=1e12?(a/1e12).toFixed(2)+"T":a>=1e9?(a/1e9).toFixed(2)+"B":a>=1e7?(a/1e6).toFixed(1)+"M":a>=1e6?(a/1e6).toFixed(2)+"M":Math.round(a).toLocaleString("en-US"))};
 export const hm=ms=>{const m=Math.ceil(ms/MIN);return m>=60?Math.floor(m/60)+"h "+(m%60)+"m":m+"m"};
 
 // ---- data ----
+export const BIZ_IMG={casino:"casino.jpg"};
 export const BIZ=[
   {id:"corner",n:"Corner shop",d:"Lottery tickets, cigarettes, and a back door.",lvl:1,cost:12000,inc:600,heat:.5},
   {id:"pawn",n:"Gold & Pawn",d:"People bring in what they can't keep. You pay what you like.",lvl:3,cost:45000,inc:2200,heat:1},
@@ -66,6 +68,10 @@ export const MATES=[
     ch:"Warm in public, sharp in private. She remembers every name, every debt and every dress she wasn't invited to.",st:"Reads a room in four seconds. Keeps a secret without being asked.",wk:"Trusts slowly and forgives slower. Hates being the last to know."},
   {id:"amara",n:"Amara",t:"girlfriend",bio:"Runs a gallery on Kenyatta Avenue. Sells you paintings you don't understand.",
     ch:"Calm, dry and a little theatrical. Treats the whole city like an exhibition she's curating.",st:"Taste, patience, and a gallery full of people who owe her favors.",wk:"Lets things slide until they can't be fixed. Won't say what she wants."},
+  {id:"luca",n:"Luca",t:"boyfriend",bio:"Plays guitar in a bar that doesn't have a name. Everyone knows where it is.",
+    ch:"Long hair, slow smile, and the habit of watching the door. Seen more than he lets on and tells none of it.",st:"Makes strangers talk. Calm when things turn ugly.",wk:"Disappears for days. Will not be told what to do."},
+  {id:"rafael",n:"Rafael",t:"boyfriend",bio:"Runs the best barbershop on the waterfront. Knows who owes whom.",
+    ch:"Clean-cut, warm, always laughing first. Cuts hair for half the city and hears everything.",st:"Everyone trusts him. Remembers every favor.",wk:"Cannot stand an argument. Gives away more than he should."},
   {id:"marco",n:"Marco",t:"boyfriend",bio:"The tailor's son. Cuts a better suit than your accountant cuts a deal.",
     ch:"Easy smile, quick hands. Grew up in a shop where every customer came with a story.",st:"Charm that opens any door. Never forgets a measurement or a face.",wk:"Says yes too fast. Cares about how things look more than he admits."},
   {id:"dante",n:"Dante",t:"boyfriend",bio:"Left the ring with all his teeth. Funny, calm, scary when he has to be.",
@@ -184,7 +190,7 @@ export const ACH=[
   {id:"heir",n:"Dynasty",d:"Hand the family to an heir.",f:s=>s.leg>=1,rw:{cash:100000,xp:500}},
 ];
 // Badge art is one-to-one with an achievement: a design is never reused. Achievements with no art yet show a plain star until a new design is added here.
-export const BADGE={job1:"skull",job100:"fire",job1000:"onyx",win25:"guns",nw1:"money",nw10:"sapphire",nw100:"amethyst",lv50:"king",lv25:"fedora",wed:"ruby",party10:"rose",coll:"ice",trade:"bolt",lv10:"bronze",biz6:"silver",heir:"gold"};
+export const BADGE={job1:"skull",job100:"fire",job1000:"onyx",win25:"guns",nw1:"money",nw10:"sapphire",nw100:"amethyst",lv50:"king",lv25:"fedora",wed:"ruby",party10:"rose",coll:"ice",trade:"bolt",lv10:"bronze",biz6:"silver",heir:"gold",raid:"skullhat",turf3:"copper"};
 export const badgeOf=id=>BADGE[id]?"badge-"+BADGE[id]+".jpg":null;
 // Omerta Coin follows the real Bitcoin price when the phone is online. Offline, it wanders around the last real price.
 const omcStep=o=>{const a=o.anchor||OMC_BASE;let r=gauss()*.0004+(a-o.p)/a*.002;if(Math.random()<.0015)r+=(Math.random()<.5?-1:1)*rnd(.02,.06);o.p=Math.max(a*.3,o.p*(1+r));o.h.push(o.p);if(o.h.length>90)o.h.shift()};
@@ -203,14 +209,21 @@ export const cardAt=l=>CARDS.filter(c=>c.min<=l).pop().id;
 export const RANKS=[[1,"Errand boy"],[4,"Associate"],[8,"Soldier"],[12,"Enforcer"],[16,"Capo"],[21,"Consigliere"],[27,"Underboss"],[34,"Boss"],[42,"Don"],[50,"Godfather"]];
 export const rank=l=>RANKS.filter(r=>l>=r[0]).pop()[1];
 export const cardOf=s=>{const l=level(s),c=CARDS.find(x=>x.id===s.pc);return c&&c.min<=l?c.id:cardAt(l)};
-export const enMax=s=>Math.min(60,12+Math.floor(level(s)*.9));
+
+// Offices: nine levels, one picture per three levels. Reaching a new picture replaces the old one for good.
+export const OFFICE_NAMES=["Back-room desk","Back-room with a safe","Back-room with a door that locks","Downtown suite","Corner suite","Suite with a private lift","Tower floor","Tower with a helipad","The whole tower"];
+export const OFFICE_TIERS=["Back room","Downtown suite","Tower"];
+export const officeTier=l=>l>0?Math.ceil(l/3):0;
+export const officeCost=l=>Math.round(40000*Math.pow(4,l));      // cost to go from level l to l+1
+export const officeLvl=l=>4+l*3;                                  // player level needed for it
+export const enMax=s=>Math.min(60,12+Math.floor(level(s)*.9)+(s.off||0));
 export const jailed=s=>s.jail>clock();
 export const eq=(o,p)=>o.st+o.st*o.lev*o.dir*(p-o.e)/o.e;
 export const used=s=>Object.entries(s.inv).reduce((a,[k,q])=>a+IM[k].s*q,0);
 export const cap=s=>STORE[s.store].slots;
 export const prestige=s=>Object.entries(s.inv).reduce((a,[k,q])=>a+IM[k].pre*q,0)+Object.keys(s.est).reduce((a,k)=>a+IM[k].pre,0);
 export const collections=s=>{const has=k=>s.inv[k]>0||s.est[k],done=COLL.filter(c=>c.need.every(has));return{done,b:done.reduce((a,c)=>a+c.b,0)}};
-export const bonus=s=>1+(s.mate?s.mate.aff/1000+(s.mate.married?.05:0):0)+Math.min(s.friends,15)*.01+collections(s).b+s.leg*.25;
+export const bonus=s=>1+(s.mate?s.mate.aff/1000+(s.mate.married?.05:0):0)+Math.min(s.friends,15)*.01+collections(s).b+s.leg*.25+(s.off||0)*.025;
 export const power=s=>s.crew.sol+s.crew.cap*8;
 export const stars=(s,id)=>{const n=s.jobs[id]||0;return n>=80?3:n>=30?2:n>=10?1:0};
 export const jobFail=(s,J)=>Math.max(3,J.r-power(s)*.12-stars(s,J.id)*2);
@@ -234,7 +247,8 @@ export const worth=s=>{
   const b=Object.entries(s.biz).reduce((a,[k,v])=>a+BM[k].cost*v.l,0);
   const it=Object.entries(s.inv).reduce((a,[k,q])=>a+IM[k].p*q,0)+Object.keys(s.est).reduce((a,k)=>a+IM[k].p,0);
   const tr=s.pos.reduce((a,o)=>a+Math.max(0,eq(o,s.fx.p[o.pair])),0),coin=s.omc.q*s.omc.p;
-  return{cash:s.cash,dirty:Math.round(s.dirty*.5),biz:b,stash:it,trades:tr,coin,total:s.cash+Math.round(s.dirty*.5)+b+it+tr+coin};
+  const eco=ecoValue(s)+Object.keys(s.land||{}).reduce((a,k)=>a+(LM[k]?(s.land[k].p||LM[k].p):0),0);
+  return{cash:s.cash,dirty:Math.round(s.dirty*.5),biz:b,stash:it,trades:tr,coin,eco,total:s.cash+Math.round(s.dirty*.5)+b+it+tr+coin+eco};
 };
 export const board=(s,now)=>{
   const hrs=(now-s.t0)/H,me={n:"You",me:1,f:"🇰🇪",c:"Kenya",w:worth(s).total,l:level(s)};
@@ -259,11 +273,11 @@ export const fresh=(now=Date.now(),keep={})=>{
   const leg=keep.leg||0;
   const s={v:3,t:now,t0:now,fxT:now,ts:now,cash:20000+leg*60000,dirty:0,res:0,lv:1,en:12,enT:now,heat:5,friends:0,parties:0,store:0,leg,
     biz:{},inv:{},est:{},crew:{sol:3,cap:0},dist:Object.fromEntries(DIST.map(d=>[d.id,0])),mate:null,last:null,pos:[],trades:[],nw:[],pid:1,
-    omc:newOmc(),pc:null,jobs:{},jobsDone:0,jail:0,hcd:{},ev:null,evT:now+15*MIN,dl:keep.dl||{d:"",st:0},ach:keep.ach||{},wins:0,raids:0,best:0,wc:0,wt:now,rv:{},
+    omc:newOmc(),pc:null,jobs:{},jobsDone:0,jail:0,hcd:{},off:0,eco:{},land:{},frac:0,ev:null,evT:now+15*MIN,dl:keep.dl||{d:"",st:0},ach:keep.ach||{},wins:0,raids:0,best:0,wc:0,wt:now,rv:{},
     log:[{t:now,x:leg?"The keys are yours now. Your father left a lot of enemies and a little money.":"Sal's old keys are yours now. Don't lose them."}],fx};
   return s;
 };
-export const load=()=>{try{const j=JSON.parse(localStorage.getItem(KEY));if(j&&j.v===3){if(!j.omc)j.omc=newOmc();return j}}catch(e){}return fresh()};
+export const load=()=>{try{const j=JSON.parse(localStorage.getItem(KEY));if(j&&j.v===3){if(!j.omc)j.omc=newOmc();if(!j.eco)j.eco={};if(!j.land)j.land={};if(!j.off)j.off=0;if(!j.frac)j.frac=0;return j}}catch(e){}return fresh()};
 
 function closePos(s,o,why){
   const v=Math.max(0,eq(o,s.fx.p[o.pair])),pl=v-o.st;
@@ -288,6 +302,7 @@ function spawn(s,now){
 }
 function tick(s,now){
   const dt=Math.max(0,now-s.t)/H;s.t=now;
+  {const tot=(ecoIncome(s)+landIncome(s))*Math.min(dt,12)*bonus(s)+(s.frac||0),w=Math.floor(tot);if(w>0)s.cash+=w;s.frac=tot-w}
   s.heat=Math.max(0,s.heat-dt*3);
   const mx=enMax(s);
   if(s.en<mx){const n=Math.floor((now-s.enT)/REGEN);if(n>0){s.en=Math.min(mx,s.en+n);s.enT+=n*REGEN}if(s.en>=mx)s.enT=now}else s.enT=now;
@@ -387,6 +402,14 @@ export function reduce(st,a){
       say(s,`Your crew hit ${R.n}'s people in ${R.c}. They came back with ${$(take)} and a few new scars.`,take)}
     else{const l=Math.min(s.crew.sol,ri(1,4));s.crew.sol-=l;s.heat=Math.min(100,s.heat+4);say(s,`${R.n}'s men were waiting. You lost ${l} soldier${l===1?"":"s"}.`)}
     return s}
+  case"note":return no(String(a.x||"").slice(0,120));
+  case"officeUp":{const l=s.off||0;if(l>=9)return s;if(level(s)<officeLvl(l))return no(`The landlord wants to see level ${officeLvl(l)} first.`);const c=officeCost(l);if(s.cash<c)return broke();
+    s.cash-=c;s.off=l+1;say(s,officeTier(l+1)!==officeTier(l)?`You moved out of the old place for good. New address: ${OFFICE_TIERS[officeTier(l+1)-1]}.`:`${OFFICE_NAMES[l]}. Your people stand a little straighter in it.`,-c);return s}
+  case"ecoBuy":{const I=EI[a.id];if(!I)return s;if(level(s)<I.lvl)return no(`That's a level ${I.lvl} kind of purchase.`);if(s.cash<I.p)return broke();s.cash-=I.p;s.eco[I.id]=(s.eco[I.id]||0)+1;say(s,`Bought: ${I.n} (${I.kn}). It pays about ${$(Math.round(I.y))} an hour.`,-I.p);return s}
+  case"landBuy":{const P=LM[a.id];if(!P)return s;const c=a.how==="win"?0:Math.max(0,Math.round(a.price||0));if(c>s.cash)return broke();s.cash-=c;s.land[P.id]={p:a.how==="buyout"?c:(a.price||P.p),since:now};say(s,a.how==="win"?`${P.n} fell to your crew. It's yours.`:`${P.n} is yours now.`,-c);return s}
+  case"landFight":{const P=LM[a.id];if(!P)return s;if(s.en<12)return no("Taking a place takes 12 energy.");spend(12);if(!a.win){const l=Math.min(s.crew.sol,Math.max(1,Math.ceil(s.crew.sol*.2)));s.crew.sol-=l;say(s,`Your crew tried to take ${P.n} and lost ${l} soldiers.`);}return s}
+  case"landLost":{const P=LM[a.id];if(P&&s.land[P.id]){delete s.land[P.id];say(s,`${P.n} was taken from you${a.by?" by "+String(a.by).slice(0,16):""}.`)}return s}
+  case"credit":{const m=Math.max(0,Math.min(1e18,+a.a||0));if(m>0){s.cash+=Math.round(m);say(s,`Paid for ${(LM[a.id]||{n:"your old property"}).n}: ${$(Math.round(m))}.`,Math.round(m))}return s}
   case"heist":{const Z=HM[a.id],e=cell();if(e)return e;if(level(s)<Z.lvl)return no(`Not yet. You need to be level ${Z.lvl}.`);
     if((s.hcd[a.id]||0)>now)return no(`Too soon. The place is watching. Try again in ${hm(s.hcd[a.id]-now)}.`);
     if(s.crew.sol<Z.sol||s.crew.cap<Z.cap)return no(`You need ${Z.sol} soldiers${Z.cap?` and ${Z.cap} capos`:""} for this one.`);

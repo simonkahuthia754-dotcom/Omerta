@@ -1,6 +1,6 @@
 // Everything that talks to the shared database lives here, so the screens never touch Firebase directly.
 import {initializeApp} from "firebase/app";
-import {getDatabase,ref,push,set,onValue,onChildAdded,query,orderByChild,limitToLast} from "firebase/database";
+import {getDatabase,ref,push,set,onValue,onChildAdded,query,orderByChild,limitToLast,runTransaction} from "firebase/database";
 
 import {firebaseConfig as cfg,configured} from "./firebase-config.js";
 export {configured};
@@ -24,3 +24,5 @@ export const ago=t=>{const m=Math.max(0,Math.round((serverNow()-t)/6e4));return 
 export const staffOf=(apps,votes)=>Object.entries(apps||{}).map(([id,a])=>({id,...a,v:Object.keys((votes||{})[id]||{}).length}))
   .sort((a,b)=>b.v-a.v||a.t-b.t);
 export const seats=list=>list.filter(c=>c.v>0).slice(0,5);
+
+export const tx=(p,fn)=>{try{return runTransaction(R(p),fn).then(r=>({ok:r.committed,v:r.snapshot.val()})).catch(e=>{fail(e);return{ok:false,v:null,err:1}})}catch(e){return Promise.resolve({ok:false,v:null,err:1})}};

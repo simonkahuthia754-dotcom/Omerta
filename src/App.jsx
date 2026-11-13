@@ -3,6 +3,8 @@ import {reduce,load,KEY,$,enMax} from "./game.js";
 import {Ic,Logo} from "./ui.jsx";
 import {Home,Jobs,Empire,Markets,Life} from "./screens.jsx";
 import {Social} from "./social.jsx";
+import {Economy} from "./econ.jsx";
+import {useWorld} from "./world.js";
 import {R,watch,put,add,query,orderByChild,limitToLast,onChildAdded,serverNow} from "./live.js";
 import * as C from "./clean.js";
 
@@ -10,7 +12,7 @@ const store={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},s
 const ID={id:C.id((store.get("omerta_id")||"").toUpperCase())||"OM-"+Math.random().toString(36).slice(2,6).toUpperCase(),name:C.name(store.get("omerta_name"))||"DON_V"};
 store.set("omerta_id",ID.id);store.set("omerta_name",ID.name);
 
-const TABS=[["home","Home","home"],["jobs","Work","case"],["empire","Empire","map"],["markets","Markets","trend"],["social","Social","cell"],["life","Life","glass"]];
+const TABS=[["home","Home","home"],["jobs","Work","case"],["empire","Empire","map"],["markets","Markets","trend"],["economy","Economy","star"],["social","Social","cell"],["life","Life","glass"]];
 const KEYS=["1","2","3","4","5","6","7","8","9","Clear","0","Delete"];
 
 // Keep the layout inside the visible area when the phone keyboard opens, and restore it when it closes.
@@ -73,7 +75,8 @@ export default function App(){
   useEffect(()=>{if(!s.toast)return;setToast(s.toast.x);const t=setTimeout(()=>setToast(null),3800);return()=>clearTimeout(t)},[s.toast&&s.toast.k]);
   const send=({text})=>add("omerta_chat",{username:ID.name,uid:ID.id,flag:"🇰🇪",text:C.text(text,300),timestamp:serverNow()});
   const rename=n=>{n=n.replace(/[^\w ]/g,"").trim().slice(0,16).replace(/ /g,"_");if(n.length<3)return;ID.name=n;store.set("omerta_name",n);setNm(n);put("omerta_online/"+ID.id,{n,t:serverNow()})};
-  const P={s,go,chat,send,net,inbox,rename,id:ID.id,name:nm},scr=useRef(null);
+  const W=useWorld(ID.id,s,go);
+  const P={W,s,go,chat,send,net,inbox,rename,id:ID.id,name:nm},scr=useRef(null);
   useEffect(()=>{if(scr.current)scr.current.scrollTop=0},[tab]);
   return(
     <div className="stage">
@@ -84,7 +87,7 @@ export default function App(){
             <span className="chip dirty" title="Dirty cash">{$(s.dirty)}</span><span className="purse" title="Clean cash">{$(s.cash)}</span></div>
         </div>
         <div className="scroll" ref={scr}>
-          {tab==="home"&&<Home {...P}/>}{tab==="jobs"&&<Jobs {...P}/>}{tab==="empire"&&<Empire {...P}/>}{tab==="markets"&&<Markets {...P}/>}{tab==="social"&&<Social {...P}/>}{tab==="life"&&<Life {...P}/>}
+          {tab==="home"&&<Home {...P}/>}{tab==="jobs"&&<Jobs {...P}/>}{tab==="empire"&&<Empire {...P}/>}{tab==="markets"&&<Markets {...P}/>}{tab==="economy"&&<Economy {...P}/>}{tab==="social"&&<Social {...P}/>}{tab==="life"&&<Life {...P}/>}
         </div>
         {toast&&<div className="toast" role="status">{toast}</div>}
         <nav className="tabs">{TABS.map(([id,l,ic])=>

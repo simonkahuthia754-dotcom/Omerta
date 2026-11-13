@@ -1,6 +1,7 @@
 import React,{useState,useRef,useEffect} from "react";
 import * as G from "./game.js";
 import {PassportCard,CardShelf} from "./passport.jsx";
+import {Office} from "./econ.jsx";
 import {Ic,Chart,Photo,Skyline,Portrait,Meter,Logo,IMG} from "./ui.jsx";
 import {Partner,Profile} from "./people.jsx";
 const {$}=G;
@@ -89,13 +90,14 @@ export function Empire({s,go}){
       {s.dirty>G.dirtyLimit(s)&&<small className="warn">That's more than you can hide. The police are starting to notice.</small>}
       <div className="btns"><button className="btn" disabled={s.dirty<=0||room<1} onClick={()=>go({t:"launder",k:"fronts"})}>Wash through businesses · 85%</button>
         <button className="btn ghost" disabled={s.dirty<=0} onClick={()=>go({t:"launder",k:"street"})}>Street wash · 55%</button></div></div>
+    <Office s={s} go={go}/>
     <Sec t="Businesses" r={$(Object.keys(s.biz).reduce((a,k)=>a+G.BM[k].inc*s.biz[k].l*G.bonus(s),0))+" / hour"}/>
     <div className="list">{owned.map(B=>{const b=s.biz[B.id],t=G.till(s,B.id,now),uc=G.bizUpCost(B.id,b.l);return(
-      <div className="biz" key={B.id}><div className="who"><b>{B.n}</b><small>Level {b.l} · {$(Math.round(B.inc*b.l*G.bonus(s)))}/hr{b.m?" · manager":""}</small></div>
+      <div className="biz" key={B.id}>{G.BIZ_IMG[B.id]&&<img className="bthumb" src={IMG(G.BIZ_IMG[B.id])} alt="" loading="lazy" draggable="false"/>}<div className="who"><b>{B.n}</b><small>Level {b.l} · {$(Math.round(B.inc*b.l*G.bonus(s)))}/hr{b.m?" · manager":""}</small></div>
         <div className="btns tight"><button className="btn" disabled={t<1} onClick={()=>go({t:"collect",id:B.id})}>{$(t)}</button>
           <button className="btn ghost" disabled={b.l>=12} onClick={()=>go({t:"upBiz",id:B.id})}>Upgrade {$(uc)}</button>
           {!b.m&&<button className="btn ghost" onClick={()=>go({t:"mgr",id:B.id})}>Manager {$(B.cost*2)}</button>}</div></div>)})}
-      {rest.map(B=><div className={"biz"+(L<B.lvl?" lk":"")} key={B.id}><div className="who"><b>{B.n}</b><small>{B.d}</small>{L<B.lvl?<small><Lock l={B.lvl}/></small>:<small>{$(B.inc)}/hr base</small>}</div>
+      {rest.map(B=><div className={"biz"+(L<B.lvl?" lk":"")} key={B.id}>{G.BIZ_IMG[B.id]&&<img className="bthumb" src={IMG(G.BIZ_IMG[B.id])} alt="" loading="lazy" draggable="false"/>}<div className="who"><b>{B.n}</b><small>{B.d}</small>{L<B.lvl?<small><Lock l={B.lvl}/></small>:<small>{$(B.inc)}/hr base</small>}</div>
         {L>=B.lvl&&<button className="btn" onClick={()=>go({t:"buyBiz",id:B.id})}>Buy {$(B.cost)}</button>}</div>)}</div>
     <Sec t="The city" r={`Tribute ${$(G.tributeRate(s))}/hr`}/>
     <div className="city"><svg viewBox="0 0 300 170" role="img" aria-label="District map">{G.DIST.map(x=>{const lk=L<x.lvl;return(

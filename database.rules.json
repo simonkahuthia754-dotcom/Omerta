@@ -1,18 +1,112 @@
 {
-  "rules": {
-    ".read": false,
-    ".write": false,
-    "omerta_chat": {".read": true, "$m": {".write": "!data.exists()",
-      ".validate": "newData.hasChildren(['username','text','timestamp']) && newData.child('text').isString() && newData.child('text').val().length > 0 && newData.child('text').val().length <= 300 && newData.child('username').isString() && newData.child('username').val().matches(/^[A-Za-z0-9_]{3,16}$/) && newData.child('timestamp').val() <= now + 300000 && newData.child('timestamp').val() >= now - 300000 && !newData.hasChild('gif')",
-      "$other": {".validate": "$other == 'username' || $other == 'text' || $other == 'timestamp' || $other == 'uid' || $other == 'flag'"}}},
-    "omerta_online": {".read": true, "$id": {".validate": "$id.matches(/^OM-[A-Z0-9]{4}$/)", ".write": true, "n": {".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_]{3,16}$/)"}, "t": {".validate": "newData.isNumber()"}}},
-    "omerta_typing": {".read": true, "$scope": {"$id": {".validate": "$id.matches(/^OM-[A-Z0-9]{4}$/)", ".write": true}}},
-    "omerta_inbox": {"$id": {".read": true, "$from": {".write": true, ".validate": "newData.hasChildren(['text','t']) && newData.child('text').val().length <= 120"}}},
-    "omerta_dm": {"$pair": {".read": true, "$m": {".write": "!data.exists()", ".validate": "newData.hasChildren(['from','text','t']) && newData.child('text').val().length <= 300 && newData.child('from').val().matches(/^OM-[A-Z0-9]{4}$/)"}}},
-    "omerta_news": {".read": true, "$paper": {
-      "apps": {"$id": {".validate": "$id.matches(/^OM-[A-Z0-9]{4}$/)", ".write": true}},
-      "votes": {"$c": {"$v": {".write": true, ".validate": "newData.val() === 1 && $v != $c"}}},
-      "likes": {"$p": {"$v": {".write": true, ".validate": "newData.val() === 1"}}},
-      "posts": {"$p": {".write": "!data.exists()", ".validate": "newData.child('title').val().length <= 80 && newData.child('body').val().length <= 700"}}}}
+ "rules": {
+  ".read": false,
+  ".write": false,
+  "omerta_chat": {
+   ".read": true,
+   "$m": {
+    ".write": "!data.exists()",
+    ".validate": "newData.hasChildren(['username','text','timestamp']) && newData.child('text').isString() && newData.child('text').val().length > 0 && newData.child('text').val().length <= 300 && newData.child('username').isString() && newData.child('username').val().matches(/^[A-Za-z0-9_]{3,16}$/) && newData.child('timestamp').val() <= now + 300000 && newData.child('timestamp').val() >= now - 300000 && !newData.hasChild('gif')",
+    "$other": {
+     ".validate": "$other == 'username' || $other == 'text' || $other == 'timestamp' || $other == 'uid' || $other == 'flag'"
+    }
+   }
+  },
+  "omerta_online": {
+   ".read": true,
+   "$id": {
+    ".validate": "$id.matches(/^OM-[A-Z0-9]{4}$/)",
+    ".write": true,
+    "n": {
+     ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_]{3,16}$/)"
+    },
+    "t": {
+     ".validate": "newData.isNumber()"
+    }
+   }
+  },
+  "omerta_typing": {
+   ".read": true,
+   "$scope": {
+    "$id": {
+     ".validate": "$id.matches(/^OM-[A-Z0-9]{4}$/)",
+     ".write": true
+    }
+   }
+  },
+  "omerta_inbox": {
+   "$id": {
+    ".read": true,
+    "$from": {
+     ".write": true,
+     ".validate": "newData.hasChildren(['text','t']) && newData.child('text').val().length <= 120"
+    }
+   }
+  },
+  "omerta_dm": {
+   "$pair": {
+    ".read": true,
+    "$m": {
+     ".write": "!data.exists()",
+     ".validate": "newData.hasChildren(['from','text','t']) && newData.child('text').val().length <= 300 && newData.child('from').val().matches(/^OM-[A-Z0-9]{4}$/)"
+    }
+   }
+  },
+  "omerta_news": {
+   ".read": true,
+   "$paper": {
+    "apps": {
+     "$id": {
+      ".validate": "$id.matches(/^OM-[A-Z0-9]{4}$/)",
+      ".write": true
+     }
+    },
+    "votes": {
+     "$c": {
+      "$v": {
+       ".write": true,
+       ".validate": "newData.val() === 1 && $v != $c"
+      }
+     }
+    },
+    "likes": {
+     "$p": {
+      "$v": {
+       ".write": true,
+       ".validate": "newData.val() === 1"
+      }
+     }
+    },
+    "posts": {
+     "$p": {
+      ".write": "!data.exists()",
+      ".validate": "newData.child('title').val().length <= 80 && newData.child('body').val().length <= 700"
+     }
+    }
+   }
+  },
+  "omerta_stock": {
+   ".read": true,
+   "$item": {
+    ".write": true,
+    ".validate": "newData.hasChildren(['n','t']) && newData.child('n').isNumber() && newData.child('n').val() >= 0 && newData.child('n').val() <= 1300 && newData.child('t').isNumber()"
+   }
+  },
+  "omerta_land": {
+   ".read": true,
+   "$place": {
+    ".write": true,
+    ".validate": "newData.hasChildren(['o','p']) && newData.child('o').val().matches(/^OM-[A-Z0-9]{4}$/) && newData.child('p').isNumber() && newData.child('p').val() > 0 && (!newData.child('nm').exists() || newData.child('nm').val().length <= 16)"
+   }
+  },
+  "omerta_credit": {
+   "$id": {
+    ".read": true,
+    "$k": {
+     ".write": true,
+     ".validate": "newData.hasChildren(['a','id']) && newData.child('a').isNumber() && newData.child('a').val() > 0"
+    }
+   }
   }
+ }
 }
