@@ -80,12 +80,12 @@ export function Jobs({s,go}){
 }
 
 // ---------- Empire ----------
-export function Empire({s,go,W,id,name}){
-  const L=G.level(s),now=s.t,[pg,setPg]=useState("biz"),[sel,setSel]=useState("ital"),d=G.DM[sel],room=G.washRoom(s,now);
+export function Empire({s,go,W,id,name,page="biz"}){
+  const L=G.level(s),now=s.t,pg=page,[sel,setSel]=useState("ital"),d=G.DM[sel],room=G.washRoom(s,now);
   const owned=G.BIZ.filter(b=>s.biz[b.id]),rest=G.BIZ.filter(b=>!s.biz[b.id]);
   return<>
-    <div className="band"><Skyline h={130}/><Photo name="city.jpg" pos="50% 78%"/><div className="hd"><h1>The empire</h1></div></div>
-    <div className="seg" style={{margin:"0 20px 14px"}}>{[["biz","Business"],["office","Office"],["cities","Cities"]].map(([k,l])=><button key={k} className={pg===k?"on":""} onClick={()=>setPg(k)}>{l}</button>)}</div>
+    {pg==="biz"?<div className="band"><Skyline h={130}/><Photo name="city.jpg" pos="50% 78%"/><div className="hd"><h1>The empire</h1></div></div>
+      :<div className="band slim"><Skyline h={90}/><div className="hd"><h1>{pg==="office"?"Your office":"Cities"}</h1></div></div>}
     {pg==="biz"&&<>
     <div className="panel"><div className="kv"><span>Dirty cash</span><b>{$(s.dirty)}</b></div>
       <div className="kv"><span>Can wash through businesses</span><b>{$(room)}</b></div>

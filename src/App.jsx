@@ -12,7 +12,7 @@ const store={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},s
 const ID={id:C.id((store.get("omerta_id")||"").toUpperCase())||"OM-"+Math.random().toString(36).slice(2,6).toUpperCase(),name:C.name(store.get("omerta_name"))||"DON_V"};
 store.set("omerta_id",ID.id);store.set("omerta_name",ID.name);
 
-const TABS=[["home","Home","home"],["jobs","Work","case"],["empire","Empire","map"],["markets","Markets","trend"],["economy","Economy","star"],["social","Social","cell"],["life","Life","glass"]];
+const TABS=[["home","Home","home"],["jobs","Work","case"],["empire","Empire","map"],["office","Office","suit"],["cities","Cities","boat"],["markets","Markets","trend"],["economy","Economy","star"],["social","Social","cell"],["life","Life","glass"]];
 const KEYS=["1","2","3","4","5","6","7","8","9","Clear","0","Delete"];
 
 // Keep the layout inside the visible area when the phone keyboard opens, and restore it when it closes.
@@ -79,7 +79,8 @@ export default function App(){
   const send=({text})=>add("omerta_chat",{username:ID.name,uid:ID.id,flag:"🇰🇪",text:C.text(text,300),timestamp:serverNow()});
   const rename=n=>{n=n.replace(/[^\w ]/g,"").trim().slice(0,16).replace(/ /g,"_");if(n.length<3)return;ID.name=n;store.set("omerta_name",n);setNm(n);put("omerta_online/"+ID.id,{n,t:serverNow()})};
   const W=useWorld(ID.id,s,go);
-  const swipe=useRef(null);
+  const swipe=useRef(null),bar=useRef(null);
+  useEffect(()=>{const b=bar.current,a=b&&b.querySelector(".on");if(a)b.scrollTo({left:a.offsetLeft-b.clientWidth/2+a.clientWidth/2,behavior:"smooth"})},[tab]);
   const ts=e=>{const x=e.touches[0];swipe.current=e.target.closest&&e.target.closest(".rail,.chart,textarea,input,.msgs,.composer,.pad")?null:[x.clientX,x.clientY]};
   const te=e=>{const a=swipe.current;swipe.current=null;if(!a)return;const x=e.changedTouches[0],dx=x.clientX-a[0],dy=x.clientY-a[1];
     if(Math.abs(dx)>90&&Math.abs(dy)<45){const i=TABS.findIndex(q=>q[0]===tab),n=i+(dx<0?1:-1);if(TABS[n])setTab(TABS[n][0])}};
@@ -94,10 +95,10 @@ export default function App(){
             <span className="chip dirty" title="Dirty cash">{$(s.dirty)}</span><span className="purse" title="Clean cash">{$(s.cash)}</span></div>
         </div>
         <div className="scroll" ref={scr} onTouchStart={ts} onTouchEnd={te}>
-          {tab==="home"&&<Home {...P}/>}{tab==="jobs"&&<Jobs {...P}/>}{tab==="empire"&&<Empire {...P}/>}{tab==="markets"&&<Markets {...P}/>}{tab==="economy"&&<Economy {...P}/>}{tab==="social"&&<Social {...P}/>}{tab==="life"&&<Life {...P}/>}
+          {tab==="home"&&<Home {...P}/>}{tab==="jobs"&&<Jobs {...P}/>}{tab==="empire"&&<Empire {...P} page="biz"/>}{tab==="office"&&<Empire {...P} page="office"/>}{tab==="cities"&&<Empire {...P} page="cities"/>}{tab==="markets"&&<Markets {...P}/>}{tab==="economy"&&<Economy {...P}/>}{tab==="social"&&<Social {...P}/>}{tab==="life"&&<Life {...P}/>}
         </div>
         {toast&&<div className="toast" role="status">{toast}</div>}
-        <nav className="tabs">{TABS.map(([id,l,ic])=>
+        <nav className="tabs" ref={bar}>{TABS.map(([id,l,ic])=>
           <button key={id} className={tab===id?"on":""} onClick={()=>setTab(id)} aria-current={tab===id}><Ic n={ic}/>{l}{id==="social"&&Object.values(inbox).some(x=>x.u)&&<i className="tabdot"/>}</button>)}</nav>
       </div>
       <Cover open={open} unlock={()=>setOpen(true)}/>

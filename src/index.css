@@ -121,8 +121,8 @@ svg.i{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.5;stroke
 .mrz{padding:12px 18px;border-top:1px dashed var(--line);font:500 11px/1.5 ui-monospace,Menlo,monospace;color:var(--smoke);letter-spacing:.14em;overflow:hidden;white-space:nowrap}
 
 /* tabs */
-.tabs{display:flex;border-top:1px solid var(--line);background:var(--felt);padding-bottom:env(safe-area-inset-bottom);position:relative;z-index:6}
-.tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0 9px;color:var(--smoke);font-size:12px;font-weight:500;position:relative}
+.tabs{display:flex;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;border-top:1px solid var(--line);background:var(--felt);padding-bottom:env(safe-area-inset-bottom);position:relative;z-index:6}
+.tabs button{flex:1 0 auto;min-width:68px;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0 9px;color:var(--smoke);font-size:12px;font-weight:500;position:relative}
 .tabs .i{font-size:22px}
 .tabs button.on{color:var(--brass-hi)}
 .tabs button.on::before{content:"";position:absolute;top:-1px;left:30%;right:30%;height:2px;background:var(--brass-hi)}
@@ -419,3 +419,6 @@ img.portrait.mate{border-radius:50%;object-fit:cover;box-shadow:0 0 0 1.5px var(
 .kb .wire.big{position:fixed;inset:0 0 auto 0;height:var(--vh,100dvh);margin:0;border:0;border-radius:0;z-index:12;background:var(--felt);padding-top:env(safe-area-inset-top)}
 .kb .wire.big .msgs{flex:1;height:auto;min-height:0}
 .kb .wire.big .thead{padding-top:8px}
+
+.tabs::-webkit-scrollbar{display:none}
+.band.slim{height:104px}
