@@ -32,7 +32,11 @@ export const ITEMS=[
   {id:"watch",n:"Gold watch",p:3500,s:1,pre:4,g:8,lvl:3,k:"Pockets",i:"watch",t:"Always five minutes early."},
   {id:"cigars",n:"Cuban cigars",p:1200,s:1,pre:2,g:5,lvl:4,k:"Pockets",i:"cigar",t:"A box of twenty. Don't ask."},
   {id:"suit",n:"Tailored suit",p:6000,s:1,pre:4,g:6,lvl:5,k:"Pockets",i:"suit",t:"Cut by a man who has never needed a tape measure."},
-  {id:"pistol",n:"Gold pistol",p:2500,s:1,pre:3,lvl:6,k:"Cellar",i:"pistol",t:"For show. Mostly."},
+  {id:"blade",n:"Switchblade",p:400,s:1,pre:0,lvl:2,k:"Cellar",i:"dagger",w:1,t:"Quiet, cheap and older than you are."},
+  {id:"revolver",n:"Snub revolver",p:1800,s:1,pre:1,lvl:4,k:"Cellar",i:"pistol",w:1,t:"Six rounds and no safety to forget."},
+  {id:"pistol",img:"pistol.png",n:"Gold pistol",p:2500,s:1,pre:3,lvl:6,k:"Cellar",i:"pistol",w:1,t:"For show. Mostly."},
+  {id:"lupara",n:"Lupara shotgun",p:7000,s:2,pre:3,lvl:9,k:"Cellar",i:"pistol",w:1,t:"Sawn-off, the old way. Family heirloom."},
+  {id:"tommy",n:"Tommy gun",p:45000,s:2,pre:12,lvl:18,k:"Cellar",i:"pistol",w:1,t:"Drum magazine. Subtle it is not."},
   {id:"bag",n:"Designer handbag",p:9000,s:1,pre:3,g:10,lvl:8,k:"For them",i:"bag",t:"Comes in its own dust bag. Has its own dust bag."},
   {id:"case",n:"Briefcase",p:10000,s:1,pre:3,lvl:10,k:"Cellar",i:"case",t:"Nobody asks what's inside."},
   {id:"car",img:"car-sport.jpg",n:"Sports car",p:50000,s:3,pre:10,lvl:12,k:"Wheels",i:"car",t:"Fast, and very easy to spot."},
@@ -40,9 +44,14 @@ export const ITEMS=[
   {id:"ring",n:"Engagement ring",p:120000,s:1,pre:10,g:0,lvl:16,k:"For them",i:"ring",t:"Save it for the right night."},
   {id:"limo",img:"limo.jpg",n:"Armored limo",p:250000,s:4,pre:25,lvl:22,k:"Wheels",i:"car",t:"Windows that stop more than sunlight."},
   {id:"hyper",img:"car-hyper.jpg",n:"Hypercar",p:1800000,s:5,pre:90,lvl:34,k:"Wheels",i:"car",t:"Two seats, one exhaust note, no chance of staying quiet."},
+  {id:"house",img:"house-family.jpg",n:"Family house, Runda",p:800000,s:0,pre:15,est:1,lvl:14,k:"Property",i:"home",t:"A pool, a gate, and neighbours who mind their business."},
   {id:"poolhouse",img:"house-pool.jpg",n:"Pool house, Karen",p:1400000,s:0,pre:30,est:1,lvl:20,k:"Property",i:"home",t:"White walls, a quiet pool, and a gate that closes behind you."},
   {id:"penthouse",img:"penthouse.jpg",n:"Penthouse, Upper Hill",p:2200000,s:0,pre:60,est:1,lvl:28,k:"Property",i:"home",t:"Forty floors up. The cops can't see in."},
+  {id:"courtyard",img:"house-courtyard.jpg",n:"Courtyard house, Muthaiga",p:3400000,s:0,pre:80,est:1,lvl:32,k:"Property",i:"home",t:"Glass on every side, and somehow nobody can see in."},
+  {id:"terraces",img:"tower-terraces.jpg",n:"Skyline terraces",p:4800000,s:0,pre:100,est:1,lvl:34,k:"Property",i:"home",t:"Six floors of balconies with a pool on the roof."},
   {id:"villa",img:"house-villa.jpg",n:"Villa on the coast",p:6500000,s:0,pre:120,est:1,lvl:36,k:"Property",i:"home",t:"Private beach, private dock, private everything."},
+  {id:"palazzo",img:"palazzo.jpg",n:"The Palazzo, whole building",p:15000000,s:0,pre:220,est:1,lvl:48,k:"Property",i:"home",t:"Ten floors of stone and one door that you control."},
+  {id:"superyacht",img:"superyacht.jpg",n:"Superyacht, 90 meters",p:40000000,s:0,pre:300,est:1,lvl:56,k:"Property",i:"boat",t:"Four decks, a helipad, and a crew that doesn't talk."},
   {id:"yacht",img:"yacht.jpg",n:"Yacht, 40 meters",p:9000000,s:0,pre:180,est:1,lvl:44,k:"Property",i:"boat",t:"Where the real conversations happen."},
 ];
 export const SHELVES=["Pockets","Cellar","For them","Wheels","Property"];
@@ -53,10 +62,14 @@ export const COLL=[
   {id:"money",n:"Old money",need:["penthouse","villa","yacht"],b:.08,d:"A penthouse, a villa and a yacht."},
 ];
 export const MATES=[
-  {id:"isa",n:"Isabella",t:"girlfriend",bio:"Sings at the Velvet Room. Knows every secret in the building."},
-  {id:"amara",n:"Amara",t:"girlfriend",bio:"Runs a gallery on Kenyatta Avenue. Sells you paintings you don't understand."},
-  {id:"marco",n:"Marco",t:"boyfriend",bio:"The tailor's son. Cuts a better suit than your accountant cuts a deal."},
-  {id:"dante",n:"Dante",t:"boyfriend",bio:"Left the ring with all his teeth. Funny, calm, scary when he has to be."},
+  {id:"isa",n:"Isabella",t:"girlfriend",bio:"Sings at the Velvet Room. Knows every secret in the building.",
+    ch:"Warm in public, sharp in private. She remembers every name, every debt and every dress she wasn't invited to.",st:"Reads a room in four seconds. Keeps a secret without being asked.",wk:"Trusts slowly and forgives slower. Hates being the last to know."},
+  {id:"amara",n:"Amara",t:"girlfriend",bio:"Runs a gallery on Kenyatta Avenue. Sells you paintings you don't understand.",
+    ch:"Calm, dry and a little theatrical. Treats the whole city like an exhibition she's curating.",st:"Taste, patience, and a gallery full of people who owe her favors.",wk:"Lets things slide until they can't be fixed. Won't say what she wants."},
+  {id:"marco",n:"Marco",t:"boyfriend",bio:"The tailor's son. Cuts a better suit than your accountant cuts a deal.",
+    ch:"Easy smile, quick hands. Grew up in a shop where every customer came with a story.",st:"Charm that opens any door. Never forgets a measurement or a face.",wk:"Says yes too fast. Cares about how things look more than he admits."},
+  {id:"dante",n:"Dante",t:"boyfriend",bio:"Left the ring with all his teeth. Funny, calm, scary when he has to be.",
+    ch:"Quiet, funny and patient. Left the ring with all his teeth and a lot of rules.",st:"Stays calm when everyone else doesn't. Fiercely loyal.",wk:"Old habits. Hard to talk to once he has decided."},
 ];
 export const PARTIES=[
   {id:"dinner",n:"Rooftop dinner",cost:12000,heat:3,res:25,lvl:5,d:"Twelve seats, one long table, no cameras.",s:[
@@ -170,11 +183,9 @@ export const ACH=[
   {id:"lv50",n:"Godfather",d:"Reach level 50.",f:s=>level(s)>=50,rw:{cash:20000000,xp:0}},
   {id:"heir",n:"Dynasty",d:"Hand the family to an heir.",f:s=>s.leg>=1,rw:{cash:100000,xp:500}},
 ];
-// Which badge art each achievement wears. Thirteen designs for now; more can be added by dropping a file in public/img and listing it here.
-export const BADGE={job1:"skull",job100:"fire",job1000:"onyx",turf3:"guns",win25:"fire",raid:"skull",
-  biz1:"money",nw1:"money",biz6:"fedora",lv25:"fedora",nw10:"sapphire",lv10:"sapphire",nw100:"king",lv50:"king",
-  streak7:"bolt",trade:"bolt",coin1:"bolt",coll:"ice",heir:"amethyst",wed:"ruby",party10:"rose"};
-export const badgeOf=id=>"badge-"+(BADGE[id]||"sapphire")+".jpg";
+// Badge art is one-to-one with an achievement: a design is never reused. Achievements with no art yet show a plain star until a new design is added here.
+export const BADGE={job1:"skull",job100:"fire",job1000:"onyx",win25:"guns",nw1:"money",nw10:"sapphire",nw100:"amethyst",lv50:"king",lv25:"fedora",wed:"ruby",party10:"rose",coll:"ice",trade:"bolt"};
+export const badgeOf=id=>BADGE[id]?"badge-"+BADGE[id]+".jpg":null;
 // Omerta Coin follows the real Bitcoin price when the phone is online. Offline, it wanders around the last real price.
 const omcStep=o=>{const a=o.anchor||OMC_BASE;let r=gauss()*.0004+(a-o.p)/a*.002;if(Math.random()<.0015)r+=(Math.random()<.5?-1:1)*rnd(.02,.06);o.p=Math.max(a*.3,o.p*(1+r));o.h.push(o.p);if(o.h.length>90)o.h.shift()};
 export const newOmc=()=>{const o={q:0,cost:0,p:OMC_BASE,anchor:OMC_BASE,h:[],live:0,lt:0,bought:0};for(let i=0;i<90;i++)omcStep(o);return o};
@@ -331,7 +342,9 @@ export function reduce(st,a){
     s.cash+=v;say(s,`Sold ${it.n} for ${$(v)}. A fence takes his cut.`,v);return s}
   case"upStore":{const nx=STORE[s.store+1];if(!nx)return no("That's the biggest vault there is.");if(s.cash<nx.cost)return broke();
     s.cash-=nx.cost;s.store++;say(s,`Moved everything into the ${nx.n}. Room for ${nx.slots}.`,-nx.cost);return s}
-  case"pickMate":{if(level(s)<6)return no("Not yet. You need to be level 6.");const m=MM[a.id];s.mate={id:m.id,aff:40,married:false,since:now};say(s,`You asked ${m.n} to dinner. ${m.n} said yes before you finished the sentence.`);return s}
+  case"pickMate":{if(level(s)<6)return no("Not yet. You need to be level 6.");const m=MM[a.id];if(!m)return s;if(s.mpref&&s.mpref!==m.t)return no("You already told the city who you're looking for.");s.mpref=m.t;s.mate={id:m.id,aff:40,married:false,since:now};say(s,`You asked ${m.n} to dinner. ${m.n} said yes before you finished the sentence.`);return s}
+  case"swapMate":{const m=s.mate,n=MM[a.id];if(!m||!n||n.id===m.id)return s;if(m.married)return no("You're married. That's a different kind of conversation.");if(n.t!==MM[m.id].t)return no("You'll stay with your type. Pick someone else.");
+    if(s.cash<5000)return no("Moving out costs $5,000.");s.cash-=5000;const old=MM[m.id];s.mate={id:n.id,aff:30,married:false,since:now};say(s,`You told ${old.n} it wasn't working. ${n.n} heard about it before you got home.`,-5000);return s}
   case"date":{const m=s.mate;if(!m)return s;const D=a.k==="trip"?{c:60000,g:16,x:`A weekend in Mombasa. ${MM[m.id].n} didn't check a phone once.`}:{c:4000,g:6,x:`Dinner for two. ${MM[m.id].n} ordered the most expensive thing and meant it.`};
     if(s.cash<D.c)return broke();s.cash-=D.c;m.aff=Math.min(100,m.aff+D.g);s.res+=5;say(s,D.x,-D.c);return s}
   case"gift":{const m=s.mate,it=IM[a.id];if(!m||!s.inv[a.id])return s;
@@ -407,3 +420,33 @@ export function reduce(st,a){
   }
   return s;
 }
+
+// Classes: where a player stands in the city. Each tier is named for an animal the street already uses for people like you.
+export const CLASSES=[
+  {min:1,id:"fox",n:"Fox",d:"Small, quick, and nobody remembers your face.",c:"#d98b4a"},
+  {min:6,id:"scorpion",n:"Scorpion",d:"People have learned not to step on you.",c:"#c9a24d"},
+  {min:12,id:"wolf",n:"Wolf",d:"You run with a crew and eat first.",c:"#9fb2c4"},
+  {min:20,id:"shark",n:"Shark",d:"Always moving, always counting, always hungry.",c:"#5fa8c9"},
+  {min:30,id:"bear",n:"Bear",d:"Nobody argues with you in your own territory.",c:"#a9784a"},
+  {min:42,id:"tiger",n:"Tiger",d:"Rarely seen. Never ignored.",c:"#e08a2e"},
+  {min:60,id:"dragon",n:"Dragon",d:"A legend that cities tell each other about.",c:"#e5543c"},
+];
+export const classOf=l=>CLASSES.filter(c=>c.min<=l).pop();
+export const nextClass=l=>CLASSES.find(c=>c.min>l)||null;
+// Six measures out of 100 drive the strengths and weaknesses on the profile.
+export const profile=s=>{
+  const w=worth(s).total,L=level(s),m=s.mate,days=Math.max(1,(s.t-s.t0)/864e5);
+  const weapons=ITEMS.filter(i=>i.w&&s.inv[i.id]>0);
+  const stat={
+    Wealth:Math.min(100,Math.max(0,Math.log10(Math.max(1,w))*100/9)),
+    Muscle:Math.min(100,s.wins*2+weapons.length*6+(s.crew?(s.crew.sol||0)*1.5:0)),
+    Business:Math.min(100,Object.keys(s.biz).length*11),
+    Society:Math.min(100,(m?m.aff*.5:0)+Math.min(s.parties,10)*3+Math.min(s.friends,15)*1.3),
+    Markets:Math.min(100,Math.log10(Math.max(1,s.best))*20),
+    Cover:Math.max(0,100-s.heat)};
+  const rank=Object.entries(stat).sort((a,b)=>b[1]-a[1]);
+  const pace=L/days;
+  return{stat,strong:rank.slice(0,2).map(x=>x[0]),weak:rank.slice(-2).reverse().map(x=>x[0]),weapons,
+    potential:pace>=5?"Meteoric":pace>=2.5?"High":pace>=1?"Steady":"Slow burn",kills:s.wins,
+    holdings:{biz:Object.keys(s.biz).length,homes:ITEMS.filter(i=>i.est&&s.est[i.id]),rides:ITEMS.filter(i=>i.k==="Wheels"&&s.inv[i.id]>0),omc:s.omc.q}};
+};

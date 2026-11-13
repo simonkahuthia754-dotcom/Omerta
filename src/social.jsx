@@ -1,14 +1,14 @@
 import React,{useState,useEffect,useRef} from "react";
 import * as G from "./game.js";
 import {Ic} from "./ui.jsx";
-import {watch,put,add,pairKey,clip,ago,staffOf,seats} from "./live.js";
-import {GIPHY_KEY} from "./config.js";
+import {watch,put,add,pairKey,clip,ago,staffOf,seats,serverNow} from "./live.js";
+import * as C from "./clean.js";
 
 const PAPERS={
   normal:{key:"normal",name:"The Daily Ledger",tag:"Everything fit to print",min:3,cls:"np"},
   underground:{key:"underground",name:"The Whisper",tag:"What they won't print downtown",min:8,cls:"ug"}};
 const Sec=({t,r})=><div className="sec"><h2>{t}</h2>{r&&<span>{r}</span>}</div>;
-const sorted=o=>Object.entries(o||{}).map(([k,v])=>({k,...v})).sort((a,b)=>(a.t||a.timestamp||0)-(b.t||b.timestamp||0));
+const sorted=o=>Object.entries(o||{}).map(([k,v])=>({k,...v})).sort((a,b)=>(a.t||0)-(b.t||0));
 
 export function Social(P){
   const [seg,setSeg]=useState("msg");
@@ -22,66 +22,50 @@ export function Social(P){
 
 function Messages({s,chat,send,id,name,net,inbox,rename}){
   const [ch,setCh]=useState("world"),[peer,setPeer]=useState(null),[on,setOn]=useState(0),[ed,setEd]=useState(null);
-  useEffect(()=>watch("omerta_online",v=>setOn(Object.values(v||{}).filter(x=>x.t>Date.now()-9e4).length)),[]);
+  useEffect(()=>watch("omerta_online",v=>setOn(C.online(v).length)),[]);
   return(<>
     <div className="status"><span className={"pulse"+(net?" up":"")}/>{net?`Live · ${Math.max(1,on)} online`:"Offline · messages send when you reconnect"}</div>
     <div className="whoami">{ed===null?<><span>You appear as <b>{name}</b></span><button onClick={()=>setEd(name)}>Change</button></>:
       <><input value={ed} maxLength={16} autoFocus onChange={e=>setEd(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"){rename(ed);setEd(null)}}} aria-label="Display name"/><button onClick={()=>{rename(ed);setEd(null)}}>Save</button></>}</div>
     <div className="chips2">{[["world","World"],["dm","Direct"]].map(([k,l])=><button key={k} className={ch===k?"on":""} onClick={()=>{setCh(k);setPeer(null)}}>{l}</button>)}</div>
-    {ch==="world"?<World chat={chat} send={send} id={id}/>:peer?<Thread peer={peer} back={()=>setPeer(null)} id={id} name={name} inbox={inbox}/>:<Inbox inbox={inbox} id={id} open={setPeer}/>}
+    {ch==="world"?<World chat={chat} send={send} id={id} name={name}/>:peer?<Thread peer={peer} back={()=>setPeer(null)} id={id} name={name} inbox={inbox}/>:<Inbox inbox={inbox} id={id} open={setPeer}/>}
   </>);
 }
 
-const EMOJI="😀 😂 🤣 😊 😍 😘 😎 🤩 🥳 😏 😬 🙄 😴 🤔 🤫 🤐 😤 😡 🤬 😈 💀 ☠️ 👻 🤑 🤝 👍 👎 👊 ✌️ 🙏 👏 💪 👀 🫡 🧠 💰 💸 💵 💎 👑 🔥 💯 ⚡ 🎩 🕴️ 🕶️ 🥃 🍷 🍾 🥂 🚬 🔫 🔪 🧨 💣 🎲 🃏 ♠️ ♥️ 🏆 🚓 🚔 🚗 🏎️ 🛥️ ✈️ 🏝️ 🏙️ 🌹 ❤️ 💔 😭 🥶 🤯 🫠 🤌 🍕 🍝 🥩 🧊".split(" ");
-const GIFHOST=/^https:\/\/(media\d*\.giphy\.com|i\.giphy\.com|media\.tenor\.com|c\.tenor\.com)\//;
-const okGif=u=>typeof u==="string"&&u.length<400&&GIFHOST.test(u);
-// Turn a pasted GIPHY page link into the direct image link when we can.
-const gifFromLink=l=>{l=(l||"").trim();if(okGif(l))return l;const m=l.match(/^https:\/\/giphy\.com\/gifs\/(?:.*-)?([A-Za-z0-9]+)\/?$/);return m?`https://media.giphy.com/media/${m[1]}/giphy.gif`:null};
-
-function Composer({onSend,ph}){
-  const [v,setV]=useState(""),[pane,setPane]=useState(null),box=useRef(null),last=useRef(0);
+// Plain keyboard input only: emoji and GIFs come from the phone's own keyboard.
+function Composer({onSend,ph,scope,id,name}){
+  const [v,setV]=useState(""),box=useRef(null),last=useRef(0),told=useRef(0);
   const fit=()=>{const e=box.current;if(e){e.style.height="auto";e.style.height=Math.min(e.scrollHeight,96)+"px"}};
   useEffect(fit,[v]);
-  const send=m=>{if(Date.now()-last.current<900)return;const text=clip(m&&m.gif?"":v,300);if(!text&&!(m&&m.gif))return;last.current=Date.now();onSend({text,gif:m&&m.gif});if(!(m&&m.gif))setV("");setPane(null)};
-  const addEmoji=e=>{const el=box.current,i=el?el.selectionStart:v.length,j=el?el.selectionEnd:v.length;const n=v.slice(0,i)+e+v.slice(j);setV(n.slice(0,300));requestAnimationFrame(()=>{if(el){el.focus();el.setSelectionRange(i+e.length,i+e.length)}})};
-  const toggle=k=>setPane(p=>p===k?null:k);
-  return(<div className="composer">
-    {pane==="emoji"&&<div className="pane emo" role="group" aria-label="Emoji">{EMOJI.map(e=><button key={e} onClick={()=>addEmoji(e)} aria-label={e}>{e}</button>)}</div>}
-    {pane==="gif"&&<GifPane pick={u=>send({gif:u})}/>}
-    <div className="pill">
-      <button className={"tool"+(pane==="emoji"?" on":"")} onClick={()=>toggle("emoji")} aria-label="Emoji"><Ic n="smile"/></button>
-      <button className={"tool gifb"+(pane==="gif"?" on":"")} onClick={()=>toggle("gif")} aria-label="GIF">GIF</button>
-      <textarea ref={box} rows={1} value={v} maxLength={300} placeholder={ph} enterKeyHint="send" aria-label="Message" onPointerDown={()=>setPane(null)}
-        onChange={e=>setV(e.target.value.replace(/\n/g," "))} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}}}/>
-      <button className="sendb" onClick={()=>send()} disabled={!v.trim()} aria-label="Send"><Ic n="send"/></button>
-    </div></div>);
+  const tell=on=>{if(!scope)return;const n=serverNow();if(on&&n-told.current<2000)return;told.current=on?n:0;put(`omerta_typing/${scope}/${id}`,on?{n:name,t:n}:null)};
+  useEffect(()=>()=>tell(false),[]);
+  const send=()=>{const text=clip(v,300);if(!text||serverNow()-last.current<900)return;last.current=serverNow();tell(false);onSend({text});setV("")};
+  return(<div className="composer"><div className="pill">
+    <textarea ref={box} rows={1} value={v} maxLength={300} placeholder={ph} enterKeyHint="send" aria-label="Message" autoComplete="off" autoCorrect="on"
+      onChange={e=>{const x=e.target.value.replace(/\n/g," ");setV(x);tell(!!x.trim())}} onBlur={()=>tell(false)}
+      onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send()}}}/>
+    <button className="sendb" onClick={send} disabled={!v.trim()} aria-label="Send"><Ic n="send"/></button>
+  </div></div>);
 }
 
-function GifPane({pick}){
-  const [q,setQ]=useState(""),[list,setList]=useState(null),[err,setErr]=useState(""),[link,setLink]=useState("");
-  useEffect(()=>{if(!GIPHY_KEY)return;let on=1;const h=setTimeout(()=>{
-    const u=q.trim()?`https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_KEY}&q=${encodeURIComponent(q.trim())}&limit=24&rating=pg-13`:`https://api.giphy.com/v1/gifs/trending?api_key=${GIPHY_KEY}&limit=24&rating=pg-13`;
-    fetch(u).then(r=>r.json()).then(j=>{if(on){setErr("");setList((j.data||[]).map(g=>({id:g.id,t:g.images.fixed_height_small.url,u:g.images.fixed_height.url})).filter(g=>okGif(g.u)))}}).catch(()=>on&&setErr("Couldn't load GIFs. Check your connection."))},q?350:0);
-    return()=>{on=0;clearTimeout(h)}},[q]);
-  const paste=()=>{const u=gifFromLink(link);if(u){pick(u);setLink("")}else setErr("That isn't a GIPHY or Tenor link.")};
-  return(<div className="pane gifp">
-    {GIPHY_KEY&&<input className="gsearch" value={q} onChange={e=>setQ(e.target.value)} placeholder="Search GIFs" aria-label="Search GIFs"/>}
-    {GIPHY_KEY&&<div className="ggrid">{list===null&&!err?<em>Loading…</em>:(list||[]).map(g=><button key={g.id} onClick={()=>pick(g.u)}><img src={g.t} alt="" loading="lazy"/></button>)}</div>}
-    <div className="glink"><input value={link} onChange={e=>setLink(e.target.value)} onKeyDown={e=>e.key==="Enter"&&paste()} placeholder="Paste a GIPHY or Tenor link" aria-label="GIF link"/><button onClick={paste}>Send</button></div>
-    {err&&<small className="err">{err}</small>}
-  </div>);
+// Shows who else is typing right now.
+function Typing({scope,id}){
+  const [who,setWho]=useState([]),[,tick]=useState(0);
+  useEffect(()=>watch("omerta_typing/"+scope,v=>setWho(C.typing(v,id))),[scope,id]);
+  useEffect(()=>{const h=setInterval(()=>tick(x=>x+1),1500);return()=>clearInterval(h)},[]);
+  const w=who.slice(0,3);
+  return(<div className="typing" aria-live="polite">{w.length>0&&<><span className="tdots"><i/><i/><i/></span>{w.join(", ")}{who.length>3?` and ${who.length-3} more`:""} {w.length+(who.length>3?1:0)>1?"are":"is"} typing</>}</div>);
 }
 
 function Bubble({m,me,showName}){
-  return(<div className={"bub"+(me?" me":"")+(m.gif?" gifm":"")}>{showName&&!me&&<b className="nm">{m.flag} {m.username}</b>}
-    {okGif(m.gif)&&<img className="gif" src={m.gif} alt="GIF" loading="lazy"/>}{m.text&&<span>{m.text}</span>}<small>{ago(m.timestamp||m.t)}</small></div>);
+  return(<div className={"bub"+(me?" me":"")}>{showName&&!me&&<b className="nm">{m.flag} {m.username}</b>}<span>{m.text}</span><small>{ago(m.timestamp||m.t)}</small></div>);
 }
 
-function World({chat,send,id}){
+function World({chat,send,id,name}){
   const end=useRef(null);
   useEffect(()=>{if(end.current)end.current.scrollTop=end.current.scrollHeight},[chat.length]);
   return(<div className="wire big"><div className="msgs" ref={end}>{chat.length===0?<em>Quiet tonight. Say something.</em>:chat.map((c,i)=><Bubble key={c.k||i} m={c} me={c.uid===id} showName/>)}</div>
-    <Composer onSend={send} ph="Message the world"/></div>);
+    <Typing scope="world" id={id}/><Composer onSend={send} ph="Message the world" scope="world" id={id} name={name}/></div>);
 }
 
 function Inbox({inbox,id,open}){
@@ -95,16 +79,15 @@ function Inbox({inbox,id,open}){
 }
 
 function Thread({peer,back,id,name,inbox}){
-  const [msgs,setMsgs]=useState({}),end=useRef(null),pk=pairKey(id,peer.id);
-  useEffect(()=>watch("omerta_dm/"+pk,v=>setMsgs(v||{})),[pk]);
+  const [msgs,setMsgs]=useState([]),end=useRef(null),pk=pairKey(id,peer.id);
+  useEffect(()=>watch("omerta_dm/"+pk,v=>setMsgs(C.dmList(v).sort((a,b)=>a.t-b.t))),[pk]);
   useEffect(()=>{const e=inbox&&inbox[peer.id];if(e&&e.u)put(`omerta_inbox/${id}/${peer.id}`,{...e,u:0})},[inbox,peer.id,id]);
-  useEffect(()=>{if(end.current)end.current.scrollTop=end.current.scrollHeight},[Object.keys(msgs).length]);
-  const list=sorted(msgs),nm=(inbox&&inbox[peer.id]&&inbox[peer.id].name)||peer.name;
-  const go=({text,gif})=>{const t=Date.now(),prev=gif?"GIF":text,m={from:id,text:text||"",t};if(gif)m.gif=gif;
-    add("omerta_dm/"+pk,m);put(`omerta_inbox/${peer.id}/${id}`,{name,text:prev,t,u:1});put(`omerta_inbox/${id}/${peer.id}`,{name:nm,text:prev,t,u:0})};
+  useEffect(()=>{if(end.current)end.current.scrollTop=end.current.scrollHeight},[msgs.length]);
+  const nm=(inbox&&inbox[peer.id]&&inbox[peer.id].name)||peer.name;
+  const go=({text})=>{const t=serverNow();add("omerta_dm/"+pk,{from:id,text,t});put(`omerta_inbox/${peer.id}/${id}`,{name,text:text.slice(0,120),t,u:1});put(`omerta_inbox/${id}/${peer.id}`,{name:nm,text:text.slice(0,120),t,u:0})};
   return(<div className="wire big"><div className="thead"><button onClick={back} aria-label="Back to conversations">‹ Back</button><b>{nm}</b><small>{peer.id}</small></div>
-    <div className="msgs" ref={end}>{list.length===0?<em>Nothing here yet. Say hello.</em>:list.map(c=><Bubble key={c.k} m={c} me={c.from===id}/>)}</div>
-    <Composer onSend={go} ph="Write a message"/></div>);
+    <div className="msgs" ref={end}>{msgs.length===0?<em>Nothing here yet. Say hello.</em>:msgs.map(c=><Bubble key={c.k} m={c} me={c.from===id}/>)}</div>
+    <Typing scope={pk} id={id}/><Composer onSend={go} ph="Write a message" scope={pk} id={id} name={name}/></div>);
 }
 
 // Filler so a paper is never blank: stories drawn from the player's own game, clearly marked as wire copy.
@@ -115,16 +98,16 @@ const wire=(s,k)=>{const o=[];
 
 function Paper({p,s,id,name}){
   const [d,setD]=useState(null),[tab,setTab]=useState("latest"),[t,setT]=useState(""),[b,setB]=useState(""),[pitch,setPitch]=useState(""),last=useRef(0),[err,setErr]=useState("");
-  useEffect(()=>watch("omerta_news/"+p.key,setD),[p.key]);
+  useEffect(()=>watch("omerta_news/"+p.key,v=>setD(C.paper(v))),[p.key]);
   const L=G.level(s),apps=(d&&d.apps)||{},votes=(d&&d.votes)||{},posts=(d&&d.posts)||{},likes=(d&&d.likes)||{};
   const all=staffOf(apps,votes),crew=seats(all),staff=crew.some(c=>c.id===id),chief=crew[0]&&crew[0].id,mine=apps[id],ok=L>=p.min;
   const arts=sorted(posts).reverse().slice(0,30),base="omerta_news/"+p.key+"/";
   const myVote=Object.keys(votes).find(c=>votes[c]&&votes[c][id]);
   const publish=()=>{const h=clip(t,80),x=clip(b,700);setErr("");if(h.length<4||x.length<20)return setErr("Give it a headline and at least a couple of sentences.");
-    if(Date.now()-last.current<12e4)return setErr("One story every two minutes. Make this one count.");last.current=Date.now();
-    add(base+"posts",{uid:id,name,title:h,body:x,t:Date.now()});setT("");setB("")};
+    if(serverNow()-last.current<12e4)return setErr("One story every two minutes. Make this one count.");last.current=serverNow();
+    add(base+"posts",{uid:id,name,title:h,body:x,t:serverNow()});setT("");setB("")};
   const vote=c=>{Object.keys(votes).forEach(o=>{if(votes[o]&&votes[o][id]&&o!==c)put(`${base}votes/${o}/${id}`,null)});put(`${base}votes/${c}/${id}`,myVote===c?null:1)};
-  const apply=()=>{const x=clip(pitch,140);if(x.length<8)return setErr("Tell people why they should vote for you.");setErr("");put(`${base}apps/${id}`,{name,pitch:x,t:Date.now()});setPitch("")};
+  const apply=()=>{const x=clip(pitch,140);if(x.length<8)return setErr("Tell people why they should vote for you.");setErr("");put(`${base}apps/${id}`,{name,pitch:x,t:serverNow()});setPitch("")};
   const like=k=>put(`${base}likes/${k}/${id}`,likes[k]&&likes[k][id]?null:1);
   const filler=arts.length<3?wire(s,p.key):[];
   return(<div className={"paper "+p.cls}>

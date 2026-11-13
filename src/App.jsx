@@ -3,10 +3,11 @@ import {reduce,load,KEY,$,enMax} from "./game.js";
 import {Ic,Logo} from "./ui.jsx";
 import {Home,Jobs,Empire,Markets,Life} from "./screens.jsx";
 import {Social} from "./social.jsx";
-import {R,watch,put,add,query,orderByChild,limitToLast,onChildAdded} from "./live.js";
+import {R,watch,put,add,query,orderByChild,limitToLast,onChildAdded,serverNow} from "./live.js";
+import * as C from "./clean.js";
 
 const store={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
-const ID={id:(store.get("omerta_id")||"OM-"+Math.random().toString(36).slice(2,6)).toUpperCase(),name:store.get("omerta_name")||"DON_V"};
+const ID={id:C.id((store.get("omerta_id")||"").toUpperCase())||"OM-"+Math.random().toString(36).slice(2,6).toUpperCase(),name:C.name(store.get("omerta_name"))||"DON_V"};
 store.set("omerta_id",ID.id);store.set("omerta_name",ID.name);
 
 const TABS=[["home","Home","home"],["jobs","Work","case"],["empire","Empire","map"],["markets","Markets","trend"],["social","Social","cell"],["life","Life","glass"]];
@@ -41,16 +42,16 @@ export default function App(){
     return()=>{clearInterval(a);clearInterval(b);window.removeEventListener("pagehide",save)}},[]);
   useEffect(()=>{
     try{const q=query(R("omerta_chat"),orderByChild("timestamp"),limitToLast(60));
-      return onChildAdded(q,x=>{const v=x.val();if(v)setChat(p=>p.some(m=>m.k===x.key)?p:[...p.slice(-59),{...v,k:x.key}])})}catch(e){}
+      return onChildAdded(q,x=>{const v=C.chatMsg(x.val()),k=C.key(x.key);if(v&&k)setChat(p=>p.some(m=>m.k===k)?p:[...p.slice(-59),{...v,k}])})}catch(e){}
   },[]);
   useEffect(()=>watch(".info/connected",v=>setNet(!!v)),[]);
-  useEffect(()=>watch("omerta_inbox/"+ID.id,v=>setInbox(v||{})),[]);
-  useEffect(()=>{const beat=()=>put("omerta_online/"+ID.id,{n:ID.name,t:Date.now()});beat();const h=setInterval(beat,30000);return()=>clearInterval(h)},[]);
+  useEffect(()=>watch("omerta_inbox/"+ID.id,v=>setInbox(C.inbox(v))),[]);
+  useEffect(()=>{const beat=()=>put("omerta_online/"+ID.id,{n:ID.name,t:serverNow()});beat();const h=setInterval(beat,30000);return()=>clearInterval(h)},[]);
   useEffect(()=>{let on=1;const pull=()=>fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd").then(r=>r.json()).then(j=>{const p=j&&j.bitcoin&&j.bitcoin.usd;if(on&&p)go({t:"omcLive",p,now:Date.now()})}).catch(()=>{});
     pull();const t=setInterval(pull,90000);return()=>{on=0;clearInterval(t)}},[]);
   useEffect(()=>{if(!s.toast)return;setToast(s.toast.x);const t=setTimeout(()=>setToast(null),3800);return()=>clearTimeout(t)},[s.toast&&s.toast.k]);
-  const send=({text,gif})=>add("omerta_chat",{username:ID.name,uid:ID.id,flag:"🇰🇪",text:text||"",...(gif?{gif}:{}),timestamp:Date.now()});
-  const rename=n=>{n=n.replace(/[^\w ]/g,"").trim().slice(0,16).replace(/ /g,"_");if(n.length<3)return;ID.name=n;store.set("omerta_name",n);setNm(n);put("omerta_online/"+ID.id,{n,t:Date.now()})};
+  const send=({text})=>add("omerta_chat",{username:ID.name,uid:ID.id,flag:"🇰🇪",text:C.text(text,300),timestamp:serverNow()});
+  const rename=n=>{n=n.replace(/[^\w ]/g,"").trim().slice(0,16).replace(/ /g,"_");if(n.length<3)return;ID.name=n;store.set("omerta_name",n);setNm(n);put("omerta_online/"+ID.id,{n,t:serverNow()})};
   const P={s,go,chat,send,net,inbox,rename,id:ID.id,name:nm},scr=useRef(null);
   useEffect(()=>{if(scr.current)scr.current.scrollTop=0},[tab]);
   return(

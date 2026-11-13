@@ -2,6 +2,7 @@ import React,{useState,useRef,useEffect} from "react";
 import * as G from "./game.js";
 import {PassportCard,CardShelf} from "./passport.jsx";
 import {Ic,Chart,Photo,Skyline,Portrait,Meter,Logo,IMG} from "./ui.jsx";
+import {Partner,Profile} from "./people.jsx";
 const {$}=G;
 const Head=({t,p})=><div className="hd"><h1>{t}</h1>{p&&<p>{p}</p>}</div>;
 const Sec=({t,r})=><div className="sec"><h2>{t}</h2>{r&&<span>{r}</span>}</div>;
@@ -161,17 +162,11 @@ export function Life({s,go,id,name}){
   const L=G.level(s),u=G.used(s),cp=G.cap(s),nx=G.STORE[s.store+1],col=G.collections(s),m=s.mate,M=m&&G.MM[m.id];
   const [open,setOpen]=useState(null);
   return<>
+    <Profile s={s} go={go} name={name} id={id}/>
     <Sec t="Passport" r={G.CARDS.find(c=>c.id===G.cardOf(s)).n}/>
     <div className="pwrap"><PassportCard s={s} name={name} id={id}/></div>
     <CardShelf s={s} go={go}/>
-    <Sec t="Partner" r={m?(m.married?"Married":"Together"):"Single"}/>
-    {!m?<div className="list">{L<6&&<div className="empty">Someone will notice you at level 6.</div>}{G.MATES.map(x=><div className="job" key={x.id}><Portrait id={x.id}/><div className="who"><b>{x.n}</b><small>{x.bio}</small></div>
-      <button className="btn" disabled={L<6} onClick={()=>go({t:"pickMate",id:x.id})}>Ask out</button></div>)}</div>:
-    <div className="panel"><div className="mrow"><Portrait id={m.id} size={72}/><div className="who"><b className="big">{M.n}</b><small>{M.t}</small><Meter v={m.aff} c="var(--blood-hi)"/><small className="dim">{G.mateLine(m)}</small></div></div>
-      <div className="btns"><button className="btn" onClick={()=>go({t:"date",k:"dinner"})}>Dinner · {$(4000)}</button><button className="btn" onClick={()=>go({t:"date",k:"trip"})}>Weekend away · {$(60000)}</button>
-        {!m.married&&<button className="btn ghost" onClick={()=>go({t:"propose"})}>Propose</button>}</div>
-      <small className="dim">Gifts from the shelf below show up here once you own them.</small>
-      <div className="btns">{G.ITEMS.filter(i=>i.g&&s.inv[i.id]).map(i=><button key={i.id} className="btn ghost" onClick={()=>go({t:"gift",id:i.id})}>Give {i.n.toLowerCase()} ×{s.inv[i.id]}</button>)}</div></div>}
+    <Partner s={s} go={go} L={L}/>
     <Sec t="Parties"/>
     <div className="list">{G.PARTIES.map(P=>{const lk=L<P.lvl;return<div className={"job"+(lk?" lk":"")} key={P.id}><div className="who"><b>{P.n}</b><small>{lk?<Lock l={P.lvl}/>:P.d}</small>{!lk&&<small className="dim">{$(P.cost)} · +{P.res} respect</small>}</div>
       {!lk&&<button className="btn" onClick={()=>go({t:"party",id:P.id})}>Throw</button>}</div>})}
@@ -180,14 +175,14 @@ export function Life({s,go,id,name}){
     <div className="panel"><Meter v={u} max={cp}/>{nx&&<div className="btns"><button className="btn ghost" onClick={()=>go({t:"upStore"})}>Move to {nx.n} · {$(nx.cost)} · {nx.slots} slots</button></div>}</div>
     <Sec t="Collections" r={`+${Math.round(col.b*100)}% to all income`}/>
     <div className="list">{G.COLL.map(c=>{const n=c.need.filter(k=>s.inv[k]>0||s.est[k]).length,dn=n===c.need.length;return<div className="job" key={c.id}><div className="who"><b>{c.n}{dn&&" ✓"}</b><small>{c.d}</small><Meter v={n} max={c.need.length}/></div><b className="amt">+{c.b*100}%</b></div>})}</div>
-    {G.SHELVES.map(sh=><div key={sh}><Sec t={sh}/><div className="shelf">{G.ITEMS.filter(i=>i.k===sh).map(it=>{const have=it.est?!!s.est[it.id]:(s.inv[it.id]||0),lk=L<it.lvl;return(
-      <div className={"card"+(lk?" lk":"")+(it.img?" wide":"")} key={it.id}>{it.img?<img className="cardimg" src={IMG(it.img)} alt="" loading="lazy" draggable="false"/>:<Ic n={it.i}/>}<b>{it.n}</b><div className="p">{$(it.p)}</div><small>{lk?<Lock l={it.lvl}/>:have?`Owned${it.est?"":": "+have}`:it.t}</small>
+    {G.SHELVES.map(sh=><div key={sh}><Sec t={sh}/><div className="shelf">{G.ITEMS.filter(i=>i.k===sh).sort((a,b)=>a.p-b.p).map(it=>{const have=it.est?!!s.est[it.id]:(s.inv[it.id]||0),lk=L<it.lvl;return(
+      <div className={"card"+(lk?" lk":"")+(it.img?" wide":"")} key={it.id}>{it.img?<img className={"cardimg"+(/\.png$/.test(it.img)?" cut":"")} src={IMG(it.img)} alt="" loading="lazy" draggable="false"/>:<Ic n={it.i}/>}<b>{it.n}</b><div className="p">{$(it.p)}</div><small>{lk?<Lock l={it.lvl}/>:have?`Owned${it.est?"":": "+have}`:it.t}</small>
         {!lk&&<div className="btns tight"><button className="buy" disabled={s.cash<it.p||(it.est&&have)} onClick={()=>go({t:"buy",id:it.id})}>{it.est&&have?"Owned":s.cash<it.p?"Can't afford":"Buy"}</button>
           {have?<button className="sell" onClick={()=>go({t:"sell",id:it.id})}>Sell</button>:null}</div>}</div>)})}</div></div>)}
     <Sec t="Achievements" r={`${Object.keys(s.ach).length} of ${G.ACH.length}`}/>
-    <div className="badges">{G.ACH.map(a=>{const d=!!s.ach[a.id];return(
+    <div className="badges">{G.ACH.map(a=>{const d=!!s.ach[a.id],art=G.badgeOf(a.id);return(
       <div className={"badge"+(d?" got":"")} key={a.id} aria-label={`${a.n}${d?", earned":", locked"}. ${a.d}`}>
-        <div className="art"><img src={IMG(G.badgeOf(a.id))} alt="" draggable="false" loading="lazy"/>{!d&&<span className="lkm"><Ic n="lock"/></span>}</div>
+        <div className={"art"+(art?"":" plain")}>{art?<img src={IMG(art)} alt="" draggable="false" loading="lazy"/>:<span className="starm"><Ic n="star"/></span>}{!d&&<span className="lkm"><Ic n="lock"/></span>}</div>
         <b>{a.n}</b><small>{a.d}</small>{a.rw.cash>0&&<em>{d?"Earned":$(a.rw.cash)}</em>}</div>)})}</div>
     <Sec t="Legacy"/>
     <div className="panel"><p className="dim" style={{fontSize:14,lineHeight:1.5}}>At level 25 you can hand everything to your heir. You start over with a little cash, and every business pays 25% more for good. Achievements stay.</p>
