@@ -18,12 +18,15 @@ const KEYS=["1","2","3","4","5","6","7","8","9","Clear","0","Delete"];
 // Keep the layout inside the visible area when the phone keyboard opens, and restore it when it closes.
 function useKeyboard(){
   useEffect(()=>{
-    const v=window.visualViewport,r=document.documentElement;
-    const f=()=>{const h=v?v.height:window.innerHeight,open=window.innerHeight-h>120||(window.__kb&&window.__kb());
-      r.style.setProperty("--vh",Math.round(h)+"px");r.classList.toggle("kb",!!open);
-      if(open){const m=document.querySelector(".composer textarea");if(m&&document.activeElement===m)setTimeout(()=>m.scrollIntoView({block:"end"}),30)}};
-    f();if(v){v.addEventListener("resize",f);v.addEventListener("scroll",f)}window.addEventListener("resize",f);
-    return()=>{if(v){v.removeEventListener("resize",f);v.removeEventListener("scroll",f)}window.removeEventListener("resize",f)}
+    const v=window.visualViewport,r=document.documentElement;let foc=false;
+    const f=()=>{const h=v?v.height:window.innerHeight,open=window.innerHeight-h>120||foc;
+      r.style.setProperty("--vh",Math.round(h)+"px");r.classList.toggle("kb",open)};
+    const inn=e=>e.target&&e.target.matches&&e.target.matches(".composer textarea");
+    const fi=e=>{if(inn(e)){foc=true;f();setTimeout(()=>{f();e.target.scrollIntoView({block:"end"})},250)}};
+    const fo=e=>{if(inn(e)){foc=false;setTimeout(f,60)}};
+    f();document.addEventListener("focusin",fi);document.addEventListener("focusout",fo);
+    if(v){v.addEventListener("resize",f);v.addEventListener("scroll",f)}window.addEventListener("resize",f);
+    return()=>{document.removeEventListener("focusin",fi);document.removeEventListener("focusout",fo);if(v){v.removeEventListener("resize",f);v.removeEventListener("scroll",f)}window.removeEventListener("resize",f)}
   },[]);
 }
 
@@ -76,6 +79,10 @@ export default function App(){
   const send=({text})=>add("omerta_chat",{username:ID.name,uid:ID.id,flag:"🇰🇪",text:C.text(text,300),timestamp:serverNow()});
   const rename=n=>{n=n.replace(/[^\w ]/g,"").trim().slice(0,16).replace(/ /g,"_");if(n.length<3)return;ID.name=n;store.set("omerta_name",n);setNm(n);put("omerta_online/"+ID.id,{n,t:serverNow()})};
   const W=useWorld(ID.id,s,go);
+  const swipe=useRef(null);
+  const ts=e=>{const x=e.touches[0];swipe.current=e.target.closest&&e.target.closest(".rail,.chart,textarea,input,.msgs,.composer,.pad")?null:[x.clientX,x.clientY]};
+  const te=e=>{const a=swipe.current;swipe.current=null;if(!a)return;const x=e.changedTouches[0],dx=x.clientX-a[0],dy=x.clientY-a[1];
+    if(Math.abs(dx)>90&&Math.abs(dy)<45){const i=TABS.findIndex(q=>q[0]===tab),n=i+(dx<0?1:-1);if(TABS[n])setTab(TABS[n][0])}};
   const P={W,s,go,chat,send,net,inbox,rename,id:ID.id,name:nm},scr=useRef(null);
   useEffect(()=>{if(scr.current)scr.current.scrollTop=0},[tab]);
   return(
@@ -86,7 +93,7 @@ export default function App(){
           <div className="chips"><span className="chip en" title="Energy"><Ic n="bolt"/>{s.en}/{enMax(s)}</span>
             <span className="chip dirty" title="Dirty cash">{$(s.dirty)}</span><span className="purse" title="Clean cash">{$(s.cash)}</span></div>
         </div>
-        <div className="scroll" ref={scr}>
+        <div className="scroll" ref={scr} onTouchStart={ts} onTouchEnd={te}>
           {tab==="home"&&<Home {...P}/>}{tab==="jobs"&&<Jobs {...P}/>}{tab==="empire"&&<Empire {...P}/>}{tab==="markets"&&<Markets {...P}/>}{tab==="economy"&&<Economy {...P}/>}{tab==="social"&&<Social {...P}/>}{tab==="life"&&<Life {...P}/>}
         </div>
         {toast&&<div className="toast" role="status">{toast}</div>}
