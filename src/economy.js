@@ -119,7 +119,7 @@ export const shelf=(it,rec,now)=>{if(!rec||typeof rec.n!=="number")return{left:i
   return now>=rec.t?{left:it.batch,out:0}:{left:0,out:rec.t-now}};
 
 // Cities and territory. One shared map: whoever holds a place holds it for everyone.
-export const LTIERS=[["Local area",3e5,8],["Town",6e6,15],["City",1e8,22],["Big city",2e9,30],["Capital city",5e10,38],["Country",1.5e12,46],["Countries",4e13,54],["Continent",1e15,62],["World",5e16,75]];
+export const LTIERS=[["Local area",3e5,8],["Town",6e6,15],["City",1e8,22],["Big city",2e9,30],["Capital city",5e10,38],["Country",3e11,46],["Countries",1.5e12,54],["Continent",6e12,62],["World",2.5e13,75]];
 const L=(t,names)=>names.split("|").map((n,i)=>{const[nm,m]=n.split("*");return{id:"l"+t+"_"+i,t,n:nm,p:Math.round(LTIERS[t][1]*(+m||1)/1000)*1000}});
 export const LAND=[
  ...L(0,"Harbor Row*1|Old Quarter*1.3|Market Street*.8|Rail Yards*.6|Lakeside*1.5|Hillcrest*1.8"),
@@ -137,4 +137,4 @@ export const takeoverPrice=p=>p*3;                  // buying someone out costs 
 export const landIncome=s=>Object.keys(s.land||{}).reduce((a,k)=>a+(LM[k]?landRate({p:(s.land[k].p)||LM[k].p}):0),0);
 // Ids that have art in public/img: eco-<id>.jpg for goods, office-1..3.jpg for offices. Add ids here as pictures arrive.
 export const ART=new Set(["re_3_3","re_3_4"]);   // Grand hotel, Palace hotel
-export const OFFICE_ART=new Set([]);
+export const OFFICE_ART=new Set([1,2,3,4,5]);

@@ -215,10 +215,11 @@ export const rank=l=>RANKS.filter(r=>l>=r[0]).pop()[1];
 export const cardOf=s=>{const l=level(s),c=CARDS.find(x=>x.id===s.pc);return c&&c.min<=l?c.id:cardAt(l)};
 
 // Offices: nine levels, one picture per three levels. Reaching a new picture replaces the old one for good.
-export const OFFICE_NAMES=["Back-room desk","Back-room with a safe","Back-room with a door that locks","Downtown suite","Corner suite","Suite with a private lift","Tower floor","Tower with a helipad","The whole tower"];
-export const OFFICE_TIERS=["Back room","Downtown suite","Tower"];
+export const OFFICE_NAMES=["Hot desk in a loft","Your own desk and a lock","Corner of the loft","Open-plan floor","Open-plan with a glass room","Glass boardroom","Atrium headquarters","Atrium with a balcony","The whole atrium","Executive suite","Suite with a private lounge","Suite with a boardroom","Penthouse office","Penthouse with a private bar","The skyline is yours"];
+export const OFFICE_MAX=15;
+export const OFFICE_TIERS=["Co-working loft","Open-plan floor","Atrium headquarters","Executive suite","Penthouse office"];
 export const officeTier=l=>l>0?Math.ceil(l/3):0;
-export const officeCost=l=>Math.round(40000*Math.pow(4,l));      // cost to go from level l to l+1
+export const officeCost=l=>Math.round(40000*Math.pow(3.4,l));      // cost to go from level l to l+1
 export const officeLvl=l=>4+l*3;                                  // player level needed for it
 export const enMax=s=>Math.min(60,12+Math.floor(level(s)*.9)+(s.off||0));
 export const jailed=s=>s.jail>clock();
@@ -407,7 +408,7 @@ export function reduce(st,a){
     else{const l=Math.min(s.crew.sol,ri(1,4));s.crew.sol-=l;s.heat=Math.min(100,s.heat+4);say(s,`${R.n}'s men were waiting. You lost ${l} soldier${l===1?"":"s"}.`)}
     return s}
   case"note":return no(String(a.x||"").slice(0,120));
-  case"officeUp":{const l=s.off||0;if(l>=9)return s;if(level(s)<officeLvl(l))return no(`The landlord wants to see level ${officeLvl(l)} first.`);const c=officeCost(l);if(s.cash<c)return broke();
+  case"officeUp":{const l=s.off||0;if(l>=OFFICE_MAX)return s;if(level(s)<officeLvl(l))return no(`The landlord wants to see level ${officeLvl(l)} first.`);const c=officeCost(l);if(s.cash<c)return broke();
     s.cash-=c;s.off=l+1;say(s,officeTier(l+1)!==officeTier(l)?`You moved out of the old place for good. New address: ${OFFICE_TIERS[officeTier(l+1)-1]}.`:`${OFFICE_NAMES[l]}. Your people stand a little straighter in it.`,-c);return s}
   case"ecoBuy":{const I=EI[a.id];if(!I)return s;if(level(s)<I.lvl)return no(`That's a level ${I.lvl} kind of purchase.`);if(s.cash<I.p)return broke();s.cash-=I.p;s.eco[I.id]=(s.eco[I.id]||0)+1;say(s,`Bought: ${I.n} (${I.kn}). It pays about ${$(Math.round(I.y))} an hour.`,-I.p);return s}
   case"landBuy":{const P=LM[a.id];if(!P)return s;const c=a.how==="win"?0:Math.max(0,Math.round(a.price||0));if(c>s.cash)return broke();s.cash-=c;s.land[P.id]={p:a.how==="buyout"?c:(a.price||P.p),since:now};say(s,a.how==="win"?`${P.n} fell to your crew. It's yours.`:`${P.n} is yours now.`,-c);return s}

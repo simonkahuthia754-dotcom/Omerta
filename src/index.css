@@ -436,3 +436,4 @@ img.portrait.mate{border-radius:50%;object-fit:cover;box-shadow:0 0 0 1.5px var(
 .livedot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#58c27d;margin-left:6px;animation:pulse 1.6s infinite}
 .board .me{color:var(--brass-hi)}.logs .lg{display:flex;gap:10px;padding:6px 0;font-size:13px;border-bottom:1px solid var(--line)}.logs .lg:last-child{border:0}.logs small{color:var(--smoke);flex:none;min-width:34px}
 @keyframes pulse{50%{opacity:.35}}
+.ofhero img.unrent{filter:grayscale(.8) brightness(.55)}
