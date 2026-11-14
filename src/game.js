@@ -10,6 +10,7 @@ export const hm=ms=>{const m=Math.ceil(ms/MIN);return m>=60?Math.floor(m/60)+"h 
 
 // ---- data ----
 export const CITY_IMG="city-night.jpg";
+export const hqImg=s=>"hq-"+Math.max(1,Math.min(5,officeTier(s.off||0)))+".jpg";
 export const BIZ_IMG={casino:"casino.jpg"};
 export const BIZ=[
   {id:"corner",n:"Corner shop",d:"Lottery tickets, cigarettes, and a back door.",lvl:1,cost:12000,inc:600,heat:.5},

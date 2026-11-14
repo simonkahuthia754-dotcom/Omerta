@@ -90,7 +90,7 @@ export default function App(){
   const ts=e=>{const x=e.touches[0];swipe.current=e.target.closest&&e.target.closest(".rail,.chart,textarea,input,.msgs,.composer,.pad")?null:[x.clientX,x.clientY]};
   const te=e=>{const a=swipe.current;swipe.current=null;if(!a)return;const x=e.changedTouches[0],dx=x.clientX-a[0],dy=x.clientY-a[1];
     if(Math.abs(dx)>90&&Math.abs(dy)<45){const i=TABS.findIndex(q=>q[0]===tab),n=i+(dx<0?1:-1);if(TABS[n])setTab(TABS[n][0])}};
-  const P={W,s,go,chat,send,net,inbox,rename,id:ID.id,name:nm},scr=useRef(null);
+  const P={goTab:setTab,W,s,go,chat,send,net,inbox,rename,id:ID.id,name:nm},scr=useRef(null);
   useEffect(()=>{if(scr.current)scr.current.scrollTop=0},[tab]);
   return(
     <div className="stage">
