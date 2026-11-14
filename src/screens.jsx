@@ -85,7 +85,7 @@ export function Empire({s,go,W,id,name,page="biz"}){
   const owned=G.BIZ.filter(b=>s.biz[b.id]),rest=G.BIZ.filter(b=>!s.biz[b.id]);
   return<>
     {pg==="biz"?<div className="band"><Skyline h={130}/><Photo name="city.jpg" pos="50% 78%"/><div className="hd"><h1>The empire</h1></div></div>
-      :pg==="office"?null:<div className="band slim"><Skyline h={90}/><div className="hd"><h1>Cities</h1></div></div>}
+      :pg==="office"?null:<div className="band slim"><Skyline h={90}/><Photo name={G.CITY_IMG} pos="50% 55%"/><div className="hd"><h1>Cities</h1></div></div>}
     {pg==="biz"&&<>
     <div className="panel"><div className="kv"><span>Dirty cash</span><b>{$(s.dirty)}</b></div>
       <div className="kv"><span>Can wash through businesses</span><b>{$(room)}</b></div>

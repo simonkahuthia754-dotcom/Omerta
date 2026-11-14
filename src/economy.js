@@ -119,7 +119,7 @@ export const shelf=(it,rec,now)=>{if(!rec||typeof rec.n!=="number")return{left:i
   return now>=rec.t?{left:it.batch,out:0}:{left:0,out:rec.t-now}};
 
 // Cities and territory. One shared map: whoever holds a place holds it for everyone.
-export const LTIERS=[["Local area",3e5,8],["Town",6e6,15],["City",1e8,22],["Big city",2e9,30],["Capital city",5e10,38],["Country",3e11,46],["Countries",1.5e12,54],["Continent",6e12,62],["World",2.5e13,75]];
+export const LTIERS=[["Local area",6e5,8],["Town",1.2e7,15],["City",2e8,22],["Big city",4e9,30],["Capital city",1e11,38],["Country",6e11,46],["Countries",3e12,54],["Continent",1.2e13,62],["World",5e13,75]];
 const L=(t,names)=>names.split("|").map((n,i)=>{const[nm,m]=n.split("*");return{id:"l"+t+"_"+i,t,n:nm,p:Math.round(LTIERS[t][1]*(+m||1)/1000)*1000}});
 export const LAND=[
  ...L(0,"Harbor Row*1|Old Quarter*1.3|Market Street*.8|Rail Yards*.6|Lakeside*1.5|Hillcrest*1.8"),

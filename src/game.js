@@ -9,6 +9,7 @@ export const $=n=>{const a=Math.abs(n);return(n<0?"-":"")+"$"+(a>=1e18?(a/1e18).
 export const hm=ms=>{const m=Math.ceil(ms/MIN);return m>=60?Math.floor(m/60)+"h "+(m%60)+"m":m+"m"};
 
 // ---- data ----
+export const CITY_IMG="city-night.jpg";
 export const BIZ_IMG={casino:"casino.jpg"};
 export const BIZ=[
   {id:"corner",n:"Corner shop",d:"Lottery tickets, cigarettes, and a back door.",lvl:1,cost:12000,inc:600,heat:.5},
@@ -36,6 +37,7 @@ export const ITEMS=[
   {id:"suit",n:"Tailored suit",p:6000,s:1,pre:4,g:6,lvl:5,k:"Pockets",i:"suit",t:"Cut by a man who has never needed a tape measure."},
   {id:"blade",n:"Switchblade",p:400,s:1,pre:0,lvl:2,k:"Cellar",i:"dagger",w:1,t:"Quiet, cheap and older than you are."},
   {id:"revolver",n:"Snub revolver",p:1800,s:1,pre:1,lvl:4,k:"Cellar",i:"pistol",w:1,t:"Six rounds and no safety to forget."},
+  {id:"nine",img:"gun-9mm.jpg",n:"Compact 9mm",p:1200,s:1,pre:2,lvl:3,k:"Cellar",i:"pistol",w:1,t:"Matte black, nothing to look at. That is the point."},
   {id:"pistol",img:"pistol.png",n:"Gold pistol",p:2500,s:1,pre:3,lvl:6,k:"Cellar",i:"pistol",w:1,t:"For show. Mostly."},
   {id:"lupara",n:"Lupara shotgun",p:7000,s:2,pre:3,lvl:9,k:"Cellar",i:"pistol",w:1,t:"Sawn-off, the old way. Family heirloom."},
   {id:"tommy",n:"Tommy gun",p:45000,s:2,pre:12,lvl:18,k:"Cellar",i:"pistol",w:1,t:"Drum magazine. Subtle it is not."},
@@ -190,7 +192,7 @@ export const ACH=[
   {id:"heir",n:"Dynasty",d:"Hand the family to an heir.",f:s=>s.leg>=1,rw:{cash:100000,xp:500}},
 ];
 // Badge art is one-to-one with an achievement: a design is never reused. Achievements with no art yet show a plain star until a new design is added here.
-export const BADGE={job1:"skull",job100:"fire",job1000:"onyx",win25:"guns",nw1:"money",nw10:"sapphire",nw100:"amethyst",lv50:"king",lv25:"fedora",wed:"ruby",party10:"rose",coll:"ice",trade:"bolt",lv10:"bronze",biz6:"silver",heir:"gold",raid:"skullhat",turf3:"copper"};
+export const BADGE={job1:"skull",job100:"fire",job1000:"onyx",win25:"guns",nw1:"money",nw10:"sapphire",nw100:"amethyst",lv50:"king",lv25:"fedora",wed:"ruby",party10:"rose",coll:"ice",trade:"bolt",lv10:"bronze",biz6:"silver",heir:"gold",raid:"skullhat",turf3:"copper",biz1:"stargreen",coin1:"starblue",streak7:"stardiamond"};
 export const badgeOf=id=>BADGE[id]?"badge-"+BADGE[id]+".jpg":null;
 // Omerta Coin follows the real Bitcoin price when the phone is online. Offline, it wanders around the last real price.
 const omcStep=o=>{const a=o.anchor||OMC_BASE;let r=gauss()*.0004+(a-o.p)/a*.002;if(Math.random()<.0015)r+=(Math.random()<.5?-1:1)*rnd(.02,.06);o.p=Math.max(a*.3,o.p*(1+r));o.h.push(o.p);if(o.h.length>90)o.h.shift()};
