@@ -11,7 +11,7 @@ export const hm=ms=>{const m=Math.ceil(ms/MIN);return m>=60?Math.floor(m/60)+"h 
 // ---- data ----
 export const CITY_IMG="city-night.jpg";
 export const hqImg=s=>"hq-"+Math.max(1,Math.min(5,officeTier(s.off||0)))+".jpg";
-export const BIZ_IMG={corner:"biz-corner.jpg",pawn:"biz-pawn.jpg",laundromat:"biz-laundromat.jpg",restaurant:"biz-restaurant.jpg",warehouse:"biz-warehouse.jpg",casino:"casino.jpg"};
+export const BIZ_IMG={corner:"biz-corner.jpg",pawn:"biz-pawn.jpg",laundromat:"biz-laundromat.jpg",restaurant:"biz-restaurant.jpg",warehouse:"biz-warehouse.jpg",hotel:"biz-hotel.jpg",bank:"biz-bank.jpg",shipping:"biz-shipping.jpg",casino:"casino.jpg"};
 export const BANK_IMG="bank-vault.jpg";
 // Bank: clean cash kept in the vault is safe from raids, earns slow interest, and can be put into fixed-term investments.
 export const BANK_RATE=.004; // per hour on the vault balance
