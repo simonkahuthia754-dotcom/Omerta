@@ -207,6 +207,10 @@ export const xpBar=s=>{const l=level(s),a=need(l),b=need(l+1);return{l,cur:s.res
 export const CARDS=[{id:"silver",n:"Violet Silver",min:1},{id:"frost",n:"Frost Pact",min:8},{id:"emerald",n:"Emerald Gold",min:16},{id:"crimson",n:"Crimson Velvet",min:27},{id:"obsidian",n:"Obsidian Crown",min:42}];
 export const cardAt=l=>CARDS.filter(c=>c.min<=l).pop().id;
 export const RANKS=[[1,"Errand boy"],[4,"Associate"],[8,"Soldier"],[12,"Enforcer"],[16,"Capo"],[21,"Consigliere"],[27,"Underboss"],[34,"Boss"],[42,"Don"],[50,"Godfather"]];
+export const CORP=[[1,"Runner"],[6,"Associate"],[12,"Manager"],[20,"Director"],[30,"Vice President"],[42,"CEO"],[60,"Chairman"],[80,"Chairman of the Board"]];
+export const corpTitle=l=>CORP.filter(r=>l>=r[0]).pop()[1];
+export const workers=s=>({sol:s.crew.sol,cap:s.crew.cap,mgr:Object.values(s.biz).filter(b=>b.m).length,desk:(s.off||0)*4});
+export const hourly=s=>Object.keys(s.biz).reduce((a,k)=>a+BM[k].inc*s.biz[k].l,0)*bonus(s)+tributeRate(s)+(ecoIncome(s)+landIncome(s))*bonus(s);
 export const rank=l=>RANKS.filter(r=>l>=r[0]).pop()[1];
 export const cardOf=s=>{const l=level(s),c=CARDS.find(x=>x.id===s.pc);return c&&c.min<=l?c.id:cardAt(l)};
 

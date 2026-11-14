@@ -85,7 +85,7 @@ export function Empire({s,go,W,id,name,page="biz"}){
   const owned=G.BIZ.filter(b=>s.biz[b.id]),rest=G.BIZ.filter(b=>!s.biz[b.id]);
   return<>
     {pg==="biz"?<div className="band"><Skyline h={130}/><Photo name="city.jpg" pos="50% 78%"/><div className="hd"><h1>The empire</h1></div></div>
-      :<div className="band slim"><Skyline h={90}/><div className="hd"><h1>{pg==="office"?"Your office":"Cities"}</h1></div></div>}
+      :pg==="office"?null:<div className="band slim"><Skyline h={90}/><div className="hd"><h1>Cities</h1></div></div>}
     {pg==="biz"&&<>
     <div className="panel"><div className="kv"><span>Dirty cash</span><b>{$(s.dirty)}</b></div>
       <div className="kv"><span>Can wash through businesses</span><b>{$(room)}</b></div>
@@ -101,7 +101,7 @@ export function Empire({s,go,W,id,name,page="biz"}){
       {rest.map(B=><div className={"biz"+(L<B.lvl?" lk":"")} key={B.id}>{G.BIZ_IMG[B.id]&&<img className="bthumb" src={IMG(G.BIZ_IMG[B.id])} alt="" loading="lazy" draggable="false"/>}<div className="who"><b>{B.n}</b><small>{B.d}</small>{L<B.lvl?<small><Lock l={B.lvl}/></small>:<small>{$(B.inc)}/hr base</small>}</div>
         {L>=B.lvl&&<button className="btn" onClick={()=>go({t:"buyBiz",id:B.id})}>Buy {$(B.cost)}</button>}</div>)}</div>
     </>}
-    {pg==="office"&&<Office s={s} go={go}/>}
+    {pg==="office"&&<Office s={s} go={go} W={W} id={id} name={name}/>}
     {pg==="cities"&&<>
     <Sec t="The city" r={`Tribute ${$(G.tributeRate(s))}/hr`}/>
     <div className="city"><svg viewBox="0 0 300 170" role="img" aria-label="District map">{G.DIST.map(x=>{const lk=L<x.lvl;return(

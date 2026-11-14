@@ -136,5 +136,5 @@ export const landRate=l=>l.p*.0006;                 // hourly income from holdin
 export const takeoverPrice=p=>p*3;                  // buying someone out costs three times the last price
 export const landIncome=s=>Object.keys(s.land||{}).reduce((a,k)=>a+(LM[k]?landRate({p:(s.land[k].p)||LM[k].p}):0),0);
 // Ids that have art in public/img: eco-<id>.jpg for goods, office-1..3.jpg for offices. Add ids here as pictures arrive.
-export const ART=new Set([]);
+export const ART=new Set(["re_3_3","re_3_4"]);   // Grand hotel, Palace hotel
 export const OFFICE_ART=new Set([]);

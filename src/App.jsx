@@ -18,15 +18,21 @@ const KEYS=["1","2","3","4","5","6","7","8","9","Clear","0","Delete"];
 // Keep the layout inside the visible area when the phone keyboard opens, and restore it when it closes.
 function useKeyboard(){
   useEffect(()=>{
-    const v=window.visualViewport,r=document.documentElement;let foc=false;
-    const f=()=>{const h=v?v.height:window.innerHeight,open=window.innerHeight-h>120||foc;
-      r.style.setProperty("--vh",Math.round(h)+"px");r.classList.toggle("kb",open)};
+    const v=window.visualViewport,r=document.documentElement;let foc=false,kbH=0,maxH=window.innerHeight;
+    // Height of the screen that is really visible. If the system already shrank the page (adjustResize), use it;
+    // otherwise subtract the keyboard height reported by the native keyboard plugin.
+    const f=()=>{maxH=Math.max(maxH,window.innerHeight);const shrunk=maxH-window.innerHeight>100;
+      let h=v?v.height:window.innerHeight;if(!shrunk&&kbH>0)h=Math.min(h,window.innerHeight-kbH);
+      const open=maxH-h>120||foc;r.style.setProperty("--vh",Math.round(h)+"px");r.classList.toggle("kb",open)};
     const inn=e=>e.target&&e.target.matches&&e.target.matches(".composer textarea");
     const fi=e=>{if(inn(e)){foc=true;f();setTimeout(()=>{f();e.target.scrollIntoView({block:"end"})},250)}};
     const fo=e=>{if(inn(e)){foc=false;setTimeout(f,60)}};
     f();document.addEventListener("focusin",fi);document.addEventListener("focusout",fo);
     if(v){v.addEventListener("resize",f);v.addEventListener("scroll",f)}window.addEventListener("resize",f);
-    return()=>{document.removeEventListener("focusin",fi);document.removeEventListener("focusout",fo);if(v){v.removeEventListener("resize",f);v.removeEventListener("scroll",f)}window.removeEventListener("resize",f)}
+    const K=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Keyboard,hs=[];
+    if(K&&K.addListener){["keyboardWillShow","keyboardDidShow"].forEach(n=>K.addListener(n,i=>{kbH=(i&&i.keyboardHeight)||0;f()}).then(x=>hs.push(x)).catch(()=>{}));
+      ["keyboardWillHide","keyboardDidHide"].forEach(n=>K.addListener(n,()=>{kbH=0;f()}).then(x=>hs.push(x)).catch(()=>{}))}
+    return()=>{document.removeEventListener("focusin",fi);document.removeEventListener("focusout",fo);if(v){v.removeEventListener("resize",f);v.removeEventListener("scroll",f)}window.removeEventListener("resize",f);hs.forEach(x=>x&&x.remove&&x.remove())}
   },[]);
 }
 
@@ -78,7 +84,7 @@ export default function App(){
   useEffect(()=>{if(!s.toast)return;setToast(s.toast.x);const t=setTimeout(()=>setToast(null),3800);return()=>clearTimeout(t)},[s.toast&&s.toast.k]);
   const send=({text})=>add("omerta_chat",{username:ID.name,uid:ID.id,flag:"🇰🇪",text:C.text(text,300),timestamp:serverNow()});
   const rename=n=>{n=n.replace(/[^\w ]/g,"").trim().slice(0,16).replace(/ /g,"_");if(n.length<3)return;ID.name=n;store.set("omerta_name",n);setNm(n);put("omerta_online/"+ID.id,{n,t:serverNow()})};
-  const W=useWorld(ID.id,s,go);
+  const W=useWorld(ID.id,s,go,nm);
   const swipe=useRef(null),bar=useRef(null);
   useEffect(()=>{const b=bar.current,a=b&&b.querySelector(".on");if(a)b.scrollTo({left:a.offsetLeft-b.clientWidth/2+a.clientWidth/2,behavior:"smooth"})},[tab]);
   const ts=e=>{const x=e.touches[0];swipe.current=e.target.closest&&e.target.closest(".rail,.chart,textarea,input,.msgs,.composer,.pad")?null:[x.clientX,x.clientY]};

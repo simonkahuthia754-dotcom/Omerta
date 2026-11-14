@@ -1,8 +1,9 @@
 // The shared world: finite stock of goods and who owns each place. Shared through the database when it is set up;
 // otherwise it runs in solo mode on this phone, with the same rules.
-import {useState,useEffect} from "react";
-import {watch,put,add,tx,serverNow,configured} from "./live.js";
+import {useState,useEffect,useRef} from "react";
+import {watch,watchTop,put,add,tx,serverNow,configured} from "./live.js";
 import * as C from "./clean.js";
+import {worth} from "./game.js";
 import {EM,LM,shelf,RESTOCK,takeoverPrice} from "./economy.js";
 
 const LS="omerta_solo_world";
@@ -15,8 +16,10 @@ const cleanStock=v=>{const o={};if(v&&typeof v==="object")Object.keys(v).forEach
 const cleanLand=v=>{const o={};if(v&&typeof v==="object")Object.keys(v).forEach(k=>{if(!LM[k])return;const r=v[k],i=C.id(r&&r.o);if(!i)return;
   o[k]={o:i,nm:C.text(r.nm,16)||i,p:Number.isFinite(r.p)&&r.p>0&&r.p<1e19?r.p:LM[k].p,pw:Number.isFinite(r.pw)&&r.pw>=0&&r.pw<1e7?Math.floor(r.pw):0}});return o};
 
-export function useWorld(me,s,go){
-  const [stock,setStock]=useState({}),[land,setLand]=useState({}),[,bump]=useState(0);
+const cleanRank=v=>{const o=[];if(v&&typeof v==="object")Object.keys(v).forEach(k=>{const i=C.id(k),r=v[k];if(i&&r&&Number.isFinite(r.w)&&r.w>=0&&r.w<1e21)o.push({id:i,n:C.name(r.n)||i,w:r.w})});return o};
+export function useWorld(me,s,go,name){
+  const [stock,setStock]=useState({}),[land,setLand]=useState({}),[,bump]=useState(0),[top,setTop]=useState([]);
+  const live=useRef(null);live.current={s,name};
   useEffect(()=>{
     if(!configured){const f=()=>{const w=readLocal();setStock(cleanStock(w.stock));setLand(cleanLand(w.land));bump(x=>x+1)};ping.add(f);f();return()=>ping.delete(f)}
     const a=watch("omerta_stock",v=>setStock(cleanStock(v))),b=watch("omerta_land",v=>setLand(cleanLand(v)));return()=>{a();b()}
@@ -26,7 +29,13 @@ export function useWorld(me,s,go){
   // Money from places that were bought off this player arrives as credits.
   useEffect(()=>{if(!configured)return;const seen=new Set();return watch("omerta_credit/"+me,v=>{if(!v||typeof v!=="object")return;Object.keys(v).forEach(k=>{if(seen.has(k)||!C.key(k))return;seen.add(k);const r=v[k];
     if(r&&Number.isFinite(r.a)&&r.a>0&&r.a<1e19&&LM[r.id]){go({t:"credit",a:r.a,id:r.id});put(`omerta_credit/${me}/${k}`,null)}})})},[me]);
-  return{stock,land,solo:!configured};
+  // Live world ranking: everyone posts their net worth about once a minute, and the top 200 are read back.
+  useEffect(()=>{if(!configured)return;const post=()=>{const c=live.current;if(!c.s||!c.name)return;const w=Math.round(worth(c.s).total);if(Number.isFinite(w)&&w>=0)put("omerta_rank/"+me,{n:c.name,w,t:serverNow()})};
+    post();const h=setInterval(post,60000);const u=watchTop("omerta_rank",200,v=>setTop(cleanRank(v)));return()=>{clearInterval(h);u()}},[me]);
+  const mine=s?Math.round(worth(s).total):0;
+  const list=configured?top:[{id:me,n:name,w:mine}];
+  const above=list.filter(x=>x.id!==me&&x.w>mine).length;
+  return{stock,land,solo:!configured,rank:{pos:above+1,of:Math.max(list.length,1),top:list.length>=200&&above>=199,list:list.slice().sort((a,b)=>b.w-a.w).slice(0,5)}};
 }
 
 export async function claimStock(it){

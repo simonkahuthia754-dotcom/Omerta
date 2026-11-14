@@ -107,6 +107,25 @@
      ".validate": "newData.hasChildren(['a','id']) && newData.child('a').isNumber() && newData.child('a').val() > 0"
     }
    }
+  },
+  "omerta_rank": {
+   ".read": true,
+   ".indexOn": [
+    "w"
+   ],
+   "$id": {
+    ".validate": "$id.matches(/^OM-[A-Z0-9]{4}$/)",
+    ".write": true,
+    "n": {
+     ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_]{3,16}$/)"
+    },
+    "w": {
+     ".validate": "newData.isNumber() && newData.val() >= 0"
+    },
+    "t": {
+     ".validate": "newData.isNumber()"
+    }
+   }
   }
  }
 }

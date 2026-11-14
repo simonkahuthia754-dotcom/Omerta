@@ -1,6 +1,11 @@
 {
   "appId": "com.simon.omerta",
-  "appName": "Omertà",
+  "appName": "Omert\u00e0",
   "webDir": "dist",
-  "bundledWebRuntime": false
+  "bundledWebRuntime": false,
+  "plugins": {
+    "Keyboard": {
+      "resize": "none"
+    }
+  }
 }

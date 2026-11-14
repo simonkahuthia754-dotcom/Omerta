@@ -26,3 +26,5 @@ export const staffOf=(apps,votes)=>Object.entries(apps||{}).map(([id,a])=>({id,.
 export const seats=list=>list.filter(c=>c.v>0).slice(0,5);
 
 export const tx=(p,fn)=>{try{return runTransaction(R(p),fn).then(r=>({ok:r.committed,v:r.snapshot.val()})).catch(e=>{fail(e);return{ok:false,v:null,err:1}})}catch(e){return Promise.resolve({ok:false,v:null,err:1})}};
+
+export const watchTop=(p,n,f)=>{try{return onValue(query(R(p),orderByChild("w"),limitToLast(n)),x=>f(x.val()),()=>f(null))}catch(e){return()=>{}}};

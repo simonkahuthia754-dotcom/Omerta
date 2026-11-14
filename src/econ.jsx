@@ -80,18 +80,39 @@ export function Economy(P){
   </>);
 }
 
-// Your office. One picture covers three levels; the next picture replaces it.
-export function Office({s,go}){
-  const l=s.off||0,tier=G.officeTier(l),L=G.level(s),next=l<9,c=G.officeCost(l),need=G.officeLvl(l);
-  return(<>
-    <Sec t="Your office" r={l?G.OFFICE_TIERS[tier-1]:"None yet"}/>
-    <div className="panel office">
-      {tier>0&&(OFFICE_ART.has(tier)?<img className="oimg" src={IMG("office-"+tier+".jpg")} alt="" draggable="false"/>:<div className={"oimg ph t"+tier}><span>{G.OFFICE_TIERS[tier-1]}</span></div>)}
-      <div className="odots" aria-label={`Level ${l} of 9`}>{Array.from({length:9},(_,i)=><i key={i} className={i<l?"f":""+(i%3===2?" end":"")}/>)}</div>
-      <div className="kv"><span>{l?G.OFFICE_NAMES[l-1]:"Run it from the back of a bar"}</span><b>Level {l} of 9</b></div>
-      <small className="dim">Each level adds one energy point and 2.5% to everything you earn.</small>
-      {next&&<div className="btns"><button className="btn" disabled={L<need||s.cash<c} onClick={()=>go({t:"officeUp"})}>{l?"Upgrade":"Rent"} · {$(c)}</button></div>}
+// Your office: a full-width page with your title, standing, staff and recent log.
+export function Office({s,go,W,id,name}){
+  const l=s.off||0,tier=G.officeTier(l),L=G.level(s),next=l<9,c=G.officeCost(l),need=G.officeLvl(l),w=G.worth(s).total,wk=G.workers(s),R=(W&&W.rank)||{pos:1,of:1,list:[]};
+  const staff=wk.sol+wk.cap+wk.mgr+wk.desk;
+  const Tile=({k,v,sub,live})=><div className="otile"><small>{k}{live&&<i className="livedot" aria-label="live"/>}</small><b>{v}</b>{sub&&<em>{sub}</em>}</div>;
+  return(<div className="ofc">
+    <div className="ofhero">
+      {tier>0&&OFFICE_ART.has(tier)?<img src={IMG("office-"+tier+".jpg")} alt="" draggable="false"/>:<div className={"ofph t"+Math.max(tier,1)} aria-hidden="true"/>}
+      <div className="ofshade"/>
+      <div className="oftitle"><small>{G.corpTitle(L)}</small><h1>{name}</h1><span>{l?G.OFFICE_NAMES[l-1]:"Run it from the back of a bar"} · level {l} of 9</span></div>
+    </div>
+    <div className="ofgrid">
+      <Tile k="Net worth" v={$(w)}/>
+      <Tile k="World rank" v={W&&W.solo?"#1":"#"+R.pos.toLocaleString("en-US")} sub={W&&W.solo?"Just you so far":`of ${R.of.toLocaleString("en-US")}${R.top?"+":""} players`} live={W&&!W.solo}/>
+      <Tile k="Workers" v={staff.toLocaleString("en-US")} sub={`${wk.sol} soldiers · ${wk.cap} capos`}/>
+      <Tile k="Earning" v={$(Math.round(G.hourly(s)))+"/hr"} sub={`${Object.keys(s.biz).length} businesses`}/>
+    </div>
+    <div className="panel">
+      <div className="kv"><span>Soldiers</span><b>{wk.sol}</b></div><div className="kv"><span>Capos</span><b>{wk.cap}</b></div>
+      <div className="kv"><span>Business managers</span><b>{wk.mgr}</b></div><div className="kv"><span>Office staff</span><b>{wk.desk}</b></div>
+      <div className="kv"><span>Rank in the family</span><b>{G.rank(L)}</b></div>
+      <div className="kv"><span>Heat</span><b>{Math.round(s.heat)}%</b></div>
+    </div>
+    <div className="panel">
+      <div className="odots" aria-label={`Office level ${l} of 9`}>{Array.from({length:9},(_,i)=><i key={i} className={(i<l?"f":"")+(i%3===2?" end":"")}/>)}</div>
+      <small className="dim">Each level adds one energy point, four desk staff and 2.5% to everything you earn. One picture covers three levels; the next picture replaces it.</small>
+      {next?<div className="btns"><button className="btn" disabled={L<need||s.cash<c} onClick={()=>go({t:"officeUp"})}>{l?"Upgrade":"Rent"} · {$(c)}</button></div>:<small className="dim">Top floor. There's nowhere higher to go.</small>}
       {next&&L<need&&<small className="dim">Needs level {need}.</small>}
       {next&&<small className="dim">Next: {G.OFFICE_NAMES[l]}{l>0&&G.officeTier(l+1)!==tier?". A new picture, and the old room is gone for good.":"."}</small>}
-    </div></>);
+    </div>
+    <Sec t="Top of the world" r={W&&W.solo?"Solo mode":"Live"}/>
+    <div className="panel board">{R.list.length?R.list.map((x,i)=><div className={"kv"+(x.id===id?" me":"")} key={x.id}><span>{i+1}. {x.n}</span><b>{$(x.w)}</b></div>):<small className="dim">Nobody yet.</small>}</div>
+    <Sec t="Office log" r={`${s.log.length} entries`}/>
+    <div className="panel logs">{s.log.slice(0,10).map((e,i)=><div className="lg" key={i}><small>{G.ago?G.ago(e.t):new Date(e.t).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}</small><span>{e.x}</span></div>)}</div>
+  </div>);
 }
