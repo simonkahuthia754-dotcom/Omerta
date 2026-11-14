@@ -11,7 +11,18 @@ export const hm=ms=>{const m=Math.ceil(ms/MIN);return m>=60?Math.floor(m/60)+"h 
 // ---- data ----
 export const CITY_IMG="city-night.jpg";
 export const hqImg=s=>"hq-"+Math.max(1,Math.min(5,officeTier(s.off||0)))+".jpg";
-export const BIZ_IMG={casino:"casino.jpg"};
+export const BIZ_IMG={corner:"biz-corner.jpg",pawn:"biz-pawn.jpg",laundromat:"biz-laundromat.jpg",restaurant:"biz-restaurant.jpg",warehouse:"biz-warehouse.jpg",casino:"casino.jpg"};
+export const BANK_IMG="bank-vault.jpg";
+// Bank: clean cash kept in the vault is safe from raids, earns slow interest, and can be put into fixed-term investments.
+export const BANK_RATE=.004; // per hour on the vault balance
+export const PLANS=[
+  {id:"bond",n:"City bond",h:1,r:.03,risk:0,min:1000,d:"One hour. Boring and safe."},
+  {id:"fund",n:"Blue-chip fund",h:6,r:.22,risk:0,min:10000,d:"Six hours. Steady money from steady people."},
+  {id:"offshore",n:"Offshore fund",h:24,r:.9,risk:.1,loss:.35,min:50000,d:"A day. Pays well. One time in ten the island has a bad quarter."},
+  {id:"equity",n:"Private equity",h:72,r:3.2,risk:.18,loss:.5,min:250000,d:"Three days. Big returns, and sometimes the company folds."},
+];
+export const PM=Object.fromEntries(PLANS.map(p=>[p.id,p]));
+export const bankTotal=s=>Math.round((s.bk||0)+(s.bi||[]).reduce((a,x)=>a+x.a,0));
 export const BIZ=[
   {id:"corner",n:"Corner shop",d:"Lottery tickets, cigarettes, and a back door.",lvl:1,cost:12000,inc:600,heat:.5},
   {id:"pawn",n:"Gold & Pawn",d:"People bring in what they can't keep. You pay what you like.",lvl:3,cost:45000,inc:2200,heat:1},
@@ -255,8 +266,8 @@ export const worth=s=>{
   const b=Object.entries(s.biz).reduce((a,[k,v])=>a+BM[k].cost*v.l,0);
   const it=Object.entries(s.inv).reduce((a,[k,q])=>a+IM[k].p*q,0)+Object.keys(s.est).reduce((a,k)=>a+IM[k].p,0);
   const tr=s.pos.reduce((a,o)=>a+Math.max(0,eq(o,s.fx.p[o.pair])),0),coin=s.omc.q*s.omc.p;
-  const eco=ecoValue(s)+Object.keys(s.land||{}).reduce((a,k)=>a+(LM[k]?(s.land[k].p||LM[k].p):0),0);
-  return{cash:s.cash,dirty:Math.round(s.dirty*.5),biz:b,stash:it,trades:tr,coin,eco,total:s.cash+Math.round(s.dirty*.5)+b+it+tr+coin+eco};
+  const bank=bankTotal(s),eco=ecoValue(s)+Object.keys(s.land||{}).reduce((a,k)=>a+(LM[k]?(s.land[k].p||LM[k].p):0),0);
+  return{cash:s.cash,dirty:Math.round(s.dirty*.5),biz:b,stash:it,trades:tr,coin,eco,bank,total:s.cash+Math.round(s.dirty*.5)+b+it+tr+coin+eco+bank};
 };
 export const board=(s,now)=>{
   const hrs=(now-s.t0)/H,me={n:"You",me:1,f:"🇰🇪",c:"Kenya",w:worth(s).total,l:level(s)};
@@ -281,11 +292,11 @@ export const fresh=(now=Date.now(),keep={})=>{
   const leg=keep.leg||0;
   const s={v:3,t:now,t0:now,fxT:now,ts:now,cash:20000+leg*60000,dirty:0,res:0,lv:1,en:12,enT:now,heat:5,friends:0,parties:0,store:0,leg,
     biz:{},inv:{},est:{},crew:{sol:3,cap:0},dist:Object.fromEntries(DIST.map(d=>[d.id,0])),mate:null,last:null,pos:[],trades:[],nw:[],pid:1,
-    omc:newOmc(),pc:null,jobs:{},jobsDone:0,jail:0,hcd:{},off:0,eco:{},land:{},frac:0,ev:null,evT:now+15*MIN,dl:keep.dl||{d:"",st:0},ach:keep.ach||{},wins:0,raids:0,best:0,wc:0,wt:now,rv:{},
+    omc:newOmc(),pc:null,jobs:{},jobsDone:0,jail:0,hcd:{},off:0,eco:{},land:{},frac:0,bk:0,bi:[],ev:null,evT:now+15*MIN,dl:keep.dl||{d:"",st:0},ach:keep.ach||{},wins:0,raids:0,best:0,wc:0,wt:now,rv:{},
     log:[{t:now,x:leg?"The keys are yours now. Your father left a lot of enemies and a little money.":"Sal's old keys are yours now. Don't lose them."}],fx};
   return s;
 };
-export const load=()=>{try{const j=JSON.parse(localStorage.getItem(KEY));if(j&&j.v===3){if(!j.omc)j.omc=newOmc();if(!j.eco)j.eco={};if(!j.land)j.land={};if(!j.off)j.off=0;if(!j.frac)j.frac=0;return j}}catch(e){}return fresh()};
+export const load=()=>{try{const j=JSON.parse(localStorage.getItem(KEY));if(j&&j.v===3){if(!j.omc)j.omc=newOmc();if(!j.eco)j.eco={};if(!j.land)j.land={};if(!j.off)j.off=0;if(!j.frac)j.frac=0;if(!j.bk)j.bk=0;if(!j.bi)j.bi=[];return j}}catch(e){}return fresh()};
 
 function closePos(s,o,why){
   const v=Math.max(0,eq(o,s.fx.p[o.pair])),pl=v-o.st;
@@ -311,6 +322,7 @@ function spawn(s,now){
 function tick(s,now){
   const dt=Math.max(0,now-s.t)/H;s.t=now;
   {const tot=(ecoIncome(s)+landIncome(s))*Math.min(dt,12)*bonus(s)+(s.frac||0),w=Math.floor(tot);if(w>0)s.cash+=w;s.frac=tot-w}
+  if(s.bk>0)s.bk+=s.bk*BANK_RATE*Math.min(dt,12);
   s.heat=Math.max(0,s.heat-dt*3);
   const mx=enMax(s);
   if(s.en<mx){const n=Math.floor((now-s.enT)/REGEN);if(n>0){s.en=Math.min(mx,s.en+n);s.enT+=n*REGEN}if(s.en>=mx)s.enT=now}else s.enT=now;
@@ -397,6 +409,18 @@ export function reduce(st,a){
     const room=washRoom(s,now);if(room<1)return no("Your businesses can't take any more right now. Wait, or use the street.");
     const amt=Math.min(s.dirty,room,a.amt||s.dirty),out=Math.round(amt*.85);s.dirty-=amt;s.cash+=out;s.wc=room-amt;s.wt=now;
     say(s,`Ran ${$(amt)} through the businesses and got ${$(out)} back.`,out);return s}
+  case"deposit":{const amt=Math.floor(Math.min(a.amt||s.cash,s.cash));if(!(amt>=1))return no("You have no clean cash to deposit.");
+    s.cash-=amt;s.bk=(s.bk||0)+amt;say(s,`Deposited ${$(amt)}. It's in the vault, and the police can't touch it.`,-amt);return s}
+  case"withdraw":{const have=Math.floor(s.bk||0),amt=Math.floor(Math.min(a.amt||have,have));if(!(amt>=1))return no("The vault is empty.");
+    s.bk=Math.max(0,(s.bk||0)-amt);s.cash+=amt;say(s,`Withdrew ${$(amt)} from the vault.`,amt);return s}
+  case"invest":{const P=PM[a.id];if(!P)return s;const have=Math.floor(s.bk||0),amt=Math.floor(Math.min(a.amt||have,have));
+    if(amt<P.min)return no(have<P.min?`Put ${$(P.min)} in the vault first. ${P.n} starts at ${$(P.min)}.`:`${P.n} starts at ${$(P.min)}.`);
+    if((s.bi||[]).length>=8)return no("Eight investments at once is plenty. Collect one first.");
+    s.bk-=amt;s.bi=[...(s.bi||[]),{id:P.id,a:amt,t:now,e:now+P.h*H}];say(s,`Put ${$(amt)} into ${P.n}. Back in ${P.h} hour${P.h>1?"s":""}.`,-amt);return s}
+  case"investCollect":{const i=(s.bi||[]).findIndex(x=>x.t===a.t0&&x.id===a.id);if(i<0)return s;const x=s.bi[i],P=PM[x.id];
+    if(now<x.e)return no(`Not ready yet. ${hm(x.e-now)} to go.`);
+    const bad=P.risk&&Math.random()<P.risk,out=Math.round(x.a*(bad?1-P.loss:1+P.r));s.bi=s.bi.filter((_,j)=>j!==i);s.bk=(s.bk||0)+out;
+    say(s,bad?`${P.n} went wrong. ${$(x.a)} came back as ${$(out)}.`:`${P.n} paid out. ${$(x.a)} became ${$(out)}, now in the vault.`,out-x.a);return s}
   case"push":{const D=DM[a.id],e=cell();if(e)return e;if(level(s)<D.lvl)return no(`Not yet. You need to be level ${D.lvl}.`);
     const c=pushCost(s);if(s.en<3)return no("Out of energy. A point comes back every three minutes.");if(s.cash<c)return broke();if(s.dist[a.id]>=100)return no("You own every corner already.");
     const p=odds(s,a.id);s.cash-=c;spend(3);

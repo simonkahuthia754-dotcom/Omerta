@@ -400,7 +400,7 @@ img.portrait.mate{border-radius:50%;object-fit:cover;box-shadow:0 0 0 1.5px var(
 .tier.t3,.tier.t4{color:var(--brass-hi);border-color:var(--brass-lo)}
 .stk{min-height:28px}.own{color:var(--brass-hi)!important}
 .bthumb{width:64px;height:64px;border-radius:8px;object-fit:cover;flex:none;margin-right:12px}
-.biz .bthumb{align-self:flex-start;width:100%;height:120px;margin:0}
+.biz .bthumb{align-self:flex-start;width:100%;height:150px;margin:0;object-position:50% 30%}
 .office .oimg{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;display:block;margin-bottom:10px}
 .office .oimg.ph{display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#2a2218,#15110c);color:var(--brass-lo);font:italic 700 22px var(--disp);border:1px solid var(--line)}
 .office .oimg.ph.t2{background:linear-gradient(145deg,#1f2530,#10141b)}.office .oimg.ph.t3{background:linear-gradient(145deg,#2d2616,#14100a)}
@@ -442,3 +442,14 @@ img.portrait.mate{border-radius:50%;object-fit:cover;box-shadow:0 0 0 1.5px var(
 .hqbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:10px 20px 14px}.hqbar small{color:var(--smoke);font-size:13px}
 .band.slim{height:190px}.band.slim .hd{align-self:flex-end}
 .band.hq::after,.band.slim::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(5,9,7,.85),transparent 65%);pointer-events:none}
+.bankhero{min-height:34dvh}
+.amtl{display:block;font-size:12px;color:var(--smoke);margin-bottom:4px}
+.amt{width:100%;box-sizing:border-box;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:rgba(0,0,0,.3);color:var(--brass-hi);font:700 22px var(--disp);font-variant-numeric:tabular-nums}
+.amt:focus{outline:2px solid var(--brass-lo);outline-offset:1px}
+.qk{display:flex;gap:8px;margin:10px 0 6px}
+.plan{padding:14px;display:flex;flex-direction:column;gap:8px}
+.prow{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.prow>div:first-child{min-width:0}
+.prow b{display:block;font-size:15px}.prow small{display:block;color:var(--smoke);font-size:12px;margin-top:2px}
+.pret{text-align:right;flex:none}.pret b{font:700 20px var(--disp);color:var(--brass-hi)}
+.pmeta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}.pmeta small{color:var(--smoke);font-size:12px}
+.plan .btn{align-self:stretch}

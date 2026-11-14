@@ -4,6 +4,7 @@ import {Ic,Logo} from "./ui.jsx";
 import {Home,Jobs,Empire,Markets,Life} from "./screens.jsx";
 import {Social} from "./social.jsx";
 import {Economy} from "./econ.jsx";
+import {Bank} from "./bank.jsx";
 import {useWorld} from "./world.js";
 import {R,watch,put,add,query,orderByChild,limitToLast,onChildAdded,serverNow} from "./live.js";
 import * as C from "./clean.js";
@@ -12,7 +13,7 @@ const store={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},s
 const ID={id:C.id((store.get("omerta_id")||"").toUpperCase())||"OM-"+Math.random().toString(36).slice(2,6).toUpperCase(),name:C.name(store.get("omerta_name"))||"DON_V"};
 store.set("omerta_id",ID.id);store.set("omerta_name",ID.name);
 
-const TABS=[["home","Home","home"],["jobs","Work","case"],["empire","Empire","map"],["office","Office","suit"],["cities","Cities","boat"],["markets","Markets","trend"],["economy","Economy","star"],["social","Social","cell"],["life","Life","glass"]];
+const TABS=[["home","Home","home"],["jobs","Work","case"],["empire","Empire","map"],["office","Office","suit"],["cities","Cities","boat"],["bank","Bank","cash"],["markets","Markets","trend"],["economy","Economy","star"],["social","Social","cell"],["life","Life","glass"]];
 const KEYS=["1","2","3","4","5","6","7","8","9","Clear","0","Delete"];
 
 // Keep the layout inside the visible area when the phone keyboard opens, and restore it when it closes.
@@ -101,7 +102,7 @@ export default function App(){
             <span className="chip dirty" title="Dirty cash">{$(s.dirty)}</span><span className="purse" title="Clean cash">{$(s.cash)}</span></div>
         </div>
         <div className="scroll" ref={scr} onTouchStart={ts} onTouchEnd={te}>
-          {tab==="home"&&<Home {...P}/>}{tab==="jobs"&&<Jobs {...P}/>}{tab==="empire"&&<Empire {...P} page="biz"/>}{tab==="office"&&<Empire {...P} page="office"/>}{tab==="cities"&&<Empire {...P} page="cities"/>}{tab==="markets"&&<Markets {...P}/>}{tab==="economy"&&<Economy {...P}/>}{tab==="social"&&<Social {...P}/>}{tab==="life"&&<Life {...P}/>}
+          {tab==="home"&&<Home {...P}/>}{tab==="jobs"&&<Jobs {...P}/>}{tab==="empire"&&<Empire {...P} page="biz"/>}{tab==="office"&&<Empire {...P} page="office"/>}{tab==="cities"&&<Empire {...P} page="cities"/>}{tab==="bank"&&<Bank {...P}/>}{tab==="markets"&&<Markets {...P}/>}{tab==="economy"&&<Economy {...P}/>}{tab==="social"&&<Social {...P}/>}{tab==="life"&&<Life {...P}/>}
         </div>
         {toast&&<div className="toast" role="status">{toast}</div>}
         <nav className="tabs" ref={bar}>{TABS.map(([id,l,ic])=>
