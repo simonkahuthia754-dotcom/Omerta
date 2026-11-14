@@ -3,7 +3,7 @@ export const TIERS=["Standard","Select","Prestige","Elite","Legendary"];
 const MULT=[1,7,45,320,2400];                       // price multiplier per tier
 const BATCH=[1300,600,200,60,12];                    // units in each shared batch: the better the goods, the fewer exist
 export const RESTOCK=3*3600*1000;                    // a sold-out batch comes back after 3 hours
-const RATE=[.0010,.0013,.0016,.0019,.0023];          // hourly income as a share of price: rarer pays more
+const RATE=[.0050,.0065,.0080,.0095,.0115];          // hourly income as a share of price: rarer pays more (shown per 10 minutes)
 // [kind, price multiplier, five names from Standard to Legendary]
 const S=(id,n,b,lvl,g)=>({id,n,b,lvl,g});
 export const SECTORS=[

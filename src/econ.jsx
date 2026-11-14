@@ -25,7 +25,7 @@ function Goods({s,go,W}){
     const r=await claimStock(it);setBusy("");if(r.ok)go({t:"ecoBuy",id:it.id});else go({t:"note",x:r.err?"Couldn't reach the supplier. Try again.":"Someone else just took the last one."})};
   const own=Object.entries(s.eco||{}).reduce((a,[k,q])=>a+q,0);
   return(<>
-    <div className="panel"><div className="kv"><span>Goods and holdings</span><b>{own}</b></div><div className="kv"><span>Pays you</span><b>{$(Math.round((ecoIncome(s)+landIncome(s))*G.bonus(s)))} / hour</b></div>
+    <div className="panel"><div className="kv"><span>Goods and holdings</span><b>{own}</b></div><div className="kv"><span>Pays you</span><b>{$(Math.round((ecoIncome(s)+landIncome(s))*G.bonus(s)/6))} / 10 min</b></div>
       <small className="dim">Stock is shared by every player. Each batch is limited, the better the goods the smaller the batch, and a sold-out batch is back after 3 hours.</small></div>
     <Rail cls="chips">{SECTORS.map(x=><button key={x.id} className={"rchip"+(x.id===sec?" on":"")+(L<x.lvl?" lk":"")} onClick={()=>pick(x.id)}>{x.n}{L<x.lvl&&<i>L{x.lvl}</i>}</button>)}</Rail>
     <div className="klist">{kinds.map(k=>{const open=k.id===kind,n=ITEMS_E.filter(i=>i.kind===k.id).reduce((a,i)=>a+((s.eco||{})[i.id]||0),0);return(
@@ -34,7 +34,7 @@ function Goods({s,go,W}){
         <Rail cls="cards">{ITEMS_E.filter(i=>i.kind===k.id).map(it=>{const sh=shelf(it,W.stock[it.id],now),lk=L<it.lvl,q=(s.eco||{})[it.id]||0;return(
           <div className={"ecard"+(lk?" lk":"")+(sh.left===0?" out":"")} key={it.id}><Art id={it.id} label={it.n}/>
             <span className={"tier t"+it.t}>{TIERS[it.t]}</span><b>{it.n}</b>
-            <div className="kv"><span>Price</span><b>{$(it.p)}</b></div><div className="kv"><span>Pays</span><b>{$(Math.round(it.y))}/hr</b></div>
+            <div className="kv"><span>Price</span><b>{$(it.p)}</b></div><div className="kv"><span>Pays</span><b>{$(Math.round(it.y/6))}/10 min</b></div>
             <small className="stk">{lk?`Unlocks at level ${it.lvl}`:sh.left>0?`${sh.left.toLocaleString("en-US")} of ${it.batch.toLocaleString("en-US")} left`:`Sold out. Next batch in ${left(sh.out)}`}</small>
             {q>0&&<small className="own">You own {q}</small>}
             <button className="btn" disabled={lk||sh.left===0||busy===it.id||s.cash<it.p} onClick={()=>buy(it)}>{sh.left===0?"Sold out":s.cash<it.p?"Not enough cash":"Buy"}</button></div>)})}</Rail>
