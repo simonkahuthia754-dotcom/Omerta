@@ -113,6 +113,6 @@ export function Office({s,go,W,id,name}){
     <Sec t="Top of the world" r={W&&W.solo?"Solo mode":"Live"}/>
     <div className="panel board">{R.list.length?R.list.map((x,i)=><div className={"kv"+(x.id===id?" me":"")} key={x.id}><span>{i+1}. {x.n}</span><b>{$(x.w)}</b></div>):<small className="dim">Nobody yet.</small>}</div>
     <Sec t="Office log" r={`${s.log.length} entries`}/>
-    <div className="panel logs">{s.log.slice(0,10).map((e,i)=><div className="lg" key={i}><small>{G.ago?G.ago(e.t):new Date(e.t).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}</small><span>{e.x}</span></div>)}</div>
+    <div className="panel logs">{s.log.slice(0,10).map((e,i)=><div className="lg" key={i}><small>{new Date(e.t).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}</small><span>{e.x}</span></div>)}</div>
   </div>);
 }

@@ -1,4 +1,3 @@
-// Economy catalogue. Pure data and maths, no UI. Add art later as public/img/eco-<id>.jpg (id as shown in the item list).
 export const TIERS=["Standard","Select","Prestige","Elite","Legendary"];
 const MULT=[1,7,45,320,2400];                       // price multiplier per tier
 const BATCH=[1300,600,200,60,12];                    // units in each shared batch: the better the goods, the fewer exist
@@ -135,7 +134,6 @@ export const LM=Object.fromEntries(LAND.map(l=>[l.id,l]));
 export const landRate=l=>l.p*.0006;                 // hourly income from holding a place
 export const takeoverPrice=p=>p*3;                  // buying someone out costs three times the last price
 export const landIncome=s=>Object.keys(s.land||{}).reduce((a,k)=>a+(LM[k]?landRate({p:(s.land[k].p)||LM[k].p}):0),0);
-// Ids that have art in public/img: eco-<id>.jpg for goods, office-1..3.jpg for offices. Add ids here as pictures arrive.
 export const ART=new Set(["re_3_3","re_3_4","lx_6_2"]);   // Grand hotel, Palace hotel
-export const LAND_ART=new Set(["l0_0","l0_3","l0_4","l0_5","l1_0","l1_1","l1_2","l1_3","l1_4","l2_0","l2_1","l2_2","l2_3","l2_4","l2_5","l3_0","l3_2","l3_3","l3_4"]);   // places with a photo. Left out on purpose: l0_1, l0_2 and l3_1 (see ASSETS.md)
+export const LAND_ART=new Set(["l0_0","l0_3","l0_4","l0_5","l1_0","l1_1","l1_2","l1_3","l1_4","l2_0","l2_1","l2_2","l2_3","l2_4","l2_5","l3_0","l3_2","l3_3","l3_4","l4_0","l4_1","l4_2","l4_3","l4_4","l4_5"]);   // places with a photo. Left out on purpose: l0_1, l0_2 and l3_1 (see ASSETS.md)
 export const OFFICE_ART=new Set([1,2,3,4,5]);

@@ -3,7 +3,6 @@ import * as G from "./game.js";
 import {IMG} from "./ui.jsx";
 
 // Where each live value goes on each card. x/y are pixels on the original 1920x1280 artwork
-// (y is the vertical centre of the text), fs is the font size at that scale, w is the room available.
 // al: l = starts at x, c = centred on x.
 const F={
   silver:[

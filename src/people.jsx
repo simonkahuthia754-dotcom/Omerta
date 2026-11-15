@@ -36,7 +36,6 @@ export function Partner({s,go,L}){
   </>);
 }
 
-// Profile picture: stays on this phone. Players can pick one of the supplied images or a photo from their own gallery.
 export const AVATARS=[];
 const AKEY="omerta_avatar";
 const store={get:()=>{try{return localStorage.getItem(AKEY)}catch(e){return null}},set:v=>{try{v?localStorage.setItem(AKEY,v):localStorage.removeItem(AKEY)}catch(e){}}};

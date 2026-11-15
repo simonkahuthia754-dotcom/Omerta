@@ -10,18 +10,16 @@ import {R,ready,watch,put,add,query,orderByChild,limitToLast,onChildAdded,server
 import * as C from "./clean.js";
 import * as Gd from "./guard.js";
 
-const store={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
+const store={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v);return true}catch(e){return false}}};
 const ID={id:C.id((store.get("omerta_id")||"").toUpperCase())||"OM-"+Math.random().toString(36).slice(2,6).toUpperCase(),name:C.name(store.get("omerta_name"))||"DON_V"};
 store.set("omerta_id",ID.id);store.set("omerta_name",ID.name);
 
 const TABS=[["home","Home","home"],["jobs","Work","case"],["empire","Empire","map"],["office","Office","suit"],["cities","Cities","boat"],["bank","Bank","cash"],["markets","Markets","trend"],["economy","Economy","star"],["social","Social","cell"],["life","Life","glass"]];
 const KEYS=["1","2","3","4","5","6","7","8","9","Clear","0","Delete"];
 
-// Keep the layout inside the visible area when the phone keyboard opens, and restore it when it closes.
 function useKeyboard(){
   useEffect(()=>{
     const v=window.visualViewport,r=document.documentElement;let foc=false,kbH=0,maxH=window.innerHeight;
-    // Height of the screen that is really visible. If the system already shrank the page (adjustResize), use it;
     // otherwise subtract the keyboard height reported by the native keyboard plugin.
     const f=()=>{maxH=Math.max(maxH,window.innerHeight);const shrunk=maxH-window.innerHeight>100;
       let h=v?v.height:window.innerHeight;if(!shrunk&&kbH>0)h=Math.min(h,window.innerHeight-kbH);
@@ -71,8 +69,8 @@ export default function App(){
   useKeyboard();
   const [open,setOpen]=useState(false),[tab,setTab]=useState("home"),[chat,setChat]=useState([]),[toast,setToast]=useState(null),[net,setNet]=useState(false),[inbox,setInbox]=useState({}),[nm,setNm]=useState(ID.name);
   const [s,go]=useReducer(reduce,null,()=>reduce(load(),{t:"tick",now:Date.now()}));
-  const sv=useRef(s);sv.current=s;
-  useEffect(()=>{const a=setInterval(()=>go({t:"tick",now:Date.now()}),1000),b=setInterval(()=>store.set(KEY,JSON.stringify(sv.current)),4000);
+  const sv=useRef(s),warned=useRef(0);sv.current=s;
+  useEffect(()=>{const a=setInterval(()=>go({t:"tick",now:Date.now()}),1000),b=setInterval(()=>{if(store.set(KEY,JSON.stringify(sv.current)))return;if(Date.now()-warned.current>6e4){warned.current=Date.now();go({t:"note",x:"Your progress could not be saved. Free up space on the phone."})}},4000);
     const save=()=>store.set(KEY,JSON.stringify(sv.current));window.addEventListener("pagehide",save);document.addEventListener("visibilitychange",save);
     return()=>{clearInterval(a);clearInterval(b);window.removeEventListener("pagehide",save)}},[]);
   useEffect(()=>{

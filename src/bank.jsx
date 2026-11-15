@@ -7,7 +7,6 @@ const Sec=({t,r})=><div className="sec"><h2>{t}</h2>{r&&<span>{r}</span>}</div>;
 const num=v=>{const n=Math.floor(Number(String(v).replace(/[^0-9]/g,"")));return Number.isFinite(n)?n:0};
 const pct=r=>Math.round(r*100)+"%";
 
-// The bank: clean cash goes in, stays safe from raids, earns slow interest, and can be invested for a fixed term.
 export function Bank({s,go,name}){
   const [v,setV]=useState(""),[,tk]=useState(0);
   useEffect(()=>{const h=setInterval(()=>tk(x=>x+1),1000);return()=>clearInterval(h)},[]);

@@ -13,7 +13,6 @@ export const CITY_IMG="city-night.jpg";
 export const hqImg=s=>"hq-"+Math.max(1,Math.min(5,officeTier(s.off||0)))+".jpg";
 export const BIZ_IMG={corner:"biz-corner.jpg",laundromat:"biz-laundromat.jpg",restaurant:"biz-restaurant.jpg",warehouse:"biz-warehouse.jpg",hotel:"biz-hotel.jpg",bank:"biz-bank.jpg",shipping:"biz-shipping.jpg",casino:"casino.jpg"};
 export const BANK_IMG="bank-vault.jpg";
-// Bank: clean cash kept in the vault is safe from raids, earns slow interest, and can be put into fixed-term investments.
 export const BANK_RATE=.004; // per hour on the vault balance
 export const PLANS=[
   {id:"bond",n:"City bond",h:1,r:.03,risk:0,min:1000,d:"One hour. Boring and safe."},
@@ -203,10 +202,8 @@ export const ACH=[
   {id:"lv50",n:"Godfather",d:"Reach level 50.",f:s=>level(s)>=50,rw:{cash:20000000,xp:0}},
   {id:"heir",n:"Dynasty",d:"Hand the family to an heir.",f:s=>s.leg>=1,rw:{cash:100000,xp:500}},
 ];
-// Badge art is one-to-one with an achievement: a design is never reused. Achievements with no art yet show a plain star until a new design is added here.
 export const BADGE={job1:"skull",job100:"fire",job1000:"onyx",win25:"guns",nw1:"money",nw10:"sapphire",nw100:"amethyst",lv50:"king",lv25:"fedora",wed:"ruby",party10:"rose",coll:"ice",trade:"bolt",lv10:"bronze",biz6:"silver",heir:"gold",raid:"skullhat",turf3:"copper",biz1:"stargreen",coin1:"starblue",streak7:"stardiamond"};
 export const badgeOf=id=>BADGE[id]?"badge-"+BADGE[id]+".jpg":null;
-// Omerta Coin follows the real Bitcoin price when the phone is online. Offline, it wanders around the last real price.
 const omcStep=o=>{const a=o.anchor||OMC_BASE;let r=gauss()*.0004+(a-o.p)/a*.002;if(Math.random()<.0015)r+=(Math.random()<.5?-1:1)*rnd(.02,.06);o.p=Math.max(a*.3,o.p*(1+r));o.h.push(o.p);if(o.h.length>90)o.h.shift()};
 export const newOmc=()=>{const o={q:0,cost:0,p:OMC_BASE,anchor:OMC_BASE,h:[],live:0,lt:0,bought:0};for(let i=0;i<90;i++)omcStep(o);return o};
 export const omcQty=q=>q>=100?q.toFixed(2):q>=1?q.toFixed(4):q.toFixed(6);
@@ -228,7 +225,6 @@ export const hourly=s=>Object.keys(s.biz).reduce((a,k)=>a+BM[k].inc*s.biz[k].l,0
 export const rank=l=>RANKS.filter(r=>l>=r[0]).pop()[1];
 export const cardOf=s=>{const l=level(s),c=CARDS.find(x=>x.id===s.pc);return c&&c.min<=l?c.id:cardAt(l)};
 
-// Offices: nine levels, one picture per three levels. Reaching a new picture replaces the old one for good.
 export const OFFICE_NAMES=["Hot desk in a loft","Your own desk and a lock","Corner of the loft","Open-plan floor","Open-plan with a glass room","Glass boardroom","Atrium headquarters","Atrium with a balcony","The whole atrium","Executive suite","Suite with a private lounge","Suite with a boardroom","Penthouse office","Penthouse with a private bar","The skyline is yours"];
 export const OFFICE_MAX=15;
 export const OFFICE_TIERS=["Co-working loft","Open-plan floor","Atrium headquarters","Executive suite","Penthouse office"];
@@ -296,8 +292,6 @@ export const fresh=(now=Date.now(),keep={})=>{
     log:[{t:now,x:leg?"The keys are yours now. Your father left a lot of enemies and a little money.":"Sal's old keys are yours now. Don't lose them."}],fx};
   return s;
 };
-// A save file lives in storage anyone can edit, so it is rebuilt before use: wrong types fall back to defaults, numbers must be finite,
-// prototype-pollution keys are dropped, and every id in a collection must be a real thing in the game.
 const BADK=new Set(["__proto__","constructor","prototype"]),rev=(k,v)=>BADK.has(k)?undefined:v;
 const plain=o=>o&&typeof o==="object"&&!Array.isArray(o);
 const only=(o,ok,f)=>Object.fromEntries(Object.entries(plain(o)?o:{}).filter(([k,v])=>ok(k)&&f(v)));
@@ -363,13 +357,13 @@ function apply(s,fx){
   if(fx.turf&&s.ev&&s.ev.di)s.dist[s.ev.di]=Math.max(0,s.dist[s.ev.di]+fx.turf);
 }
 
+const clone=typeof structuredClone==="function"?structuredClone:o=>JSON.parse(JSON.stringify(o));
 export function reduce(st,a){
-  // Actions come from the UI, but they are still checked: an id must look like an id and must not be an inherited name like "constructor",
   // and a numeric amount must be a real finite number.
   if(!a||typeof a.t!=="string")return st;
   if(a.id!==undefined&&(typeof a.id!=="string"||!/^[A-Za-z0-9_]{1,48}$/.test(a.id)||a.id in Object.prototype))return st;
   if(a.amt!==undefined&&!(Number.isFinite(a.amt)&&a.amt>=0))return st;
-  NOW=a.now||0;const s=structuredClone(st),now=clock(),no=x=>{s.toast={k:Math.random(),x};return s},broke=()=>no("You're short on clean cash for that."),cell=()=>jailed(s)?no(`You're locked up for another ${hm(s.jail-now)}. Pay bail or wait it out.`):null;
+  NOW=a.now||0;const s=clone(st),now=clock(),no=x=>{s.toast={k:Math.random(),x};return s},broke=()=>no("You're short on clean cash for that."),cell=()=>jailed(s)?no(`You're locked up for another ${hm(s.jail-now)}. Pay bail or wait it out.`):null;
   const spend=n=>{const full=s.en>=enMax(s);s.en-=n;if(full)s.enT=now};
   switch(a.t){
   case"tick":tick(s,a.now);return s;
@@ -496,7 +490,6 @@ export function reduce(st,a){
   return s;
 }
 
-// Classes: where a player stands in the city. Each tier is named for an animal the street already uses for people like you.
 export const CLASSES=[
   {min:1,id:"fox",n:"Fox",d:"Small, quick, and nobody remembers your face.",c:"#d98b4a"},
   {min:6,id:"scorpion",n:"Scorpion",d:"People have learned not to step on you.",c:"#c9a24d"},

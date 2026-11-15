@@ -1,6 +1,5 @@
-// Everything that talks to the shared database lives here, so the screens never touch Firebase directly.
 import {initializeApp} from "firebase/app";
-import {getAuth,signInAnonymously} from "firebase/auth";
+import {initializeAuth,indexedDBLocalPersistence,browserLocalPersistence,signInAnonymously} from "firebase/auth";
 import {getDatabase,ref,push,set,onValue,onChildAdded,query,orderByChild,limitToLast,runTransaction} from "firebase/database";
 
 import {firebaseConfig as cfg,configured} from "./firebase-config.js";
@@ -9,17 +8,14 @@ let lastErr="";const errs=new Set();export const lastError=()=>lastErr;export co
 const fail=e=>{const c=e&&e.code;lastErr=c==="PERMISSION_DENIED"?"The database refused that. Its rules need to be published.":/auth/.test(c||"")?"Could not sign in to the shared world. Turn on Anonymous sign-in in Firebase.":c==="slow"?"Slow down a little.":"A message could not be sent.";errs.forEach(f=>f(lastErr));};
 const app=initializeApp(cfg);
 export const rtdb=getDatabase(app);
-// Every read and write waits for an anonymous sign-in, so the database rules can require a signed-in user.
-const auth=configured?getAuth(app):null;
+const auth=configured?initializeAuth(app,{persistence:[indexedDBLocalPersistence,browserLocalPersistence]}):null;
 export const ready=configured?signInAnonymously(auth).then(()=>1,e=>{fail(e);return 0}):Promise.resolve(1);
 const uid=()=>(auth&&auth.currentUser&&auth.currentUser.uid)||"";
-// Your own rank and presence rows are stamped with your sign-in id, and the rules only let that id change them again.
 const own=(p,v)=>v&&typeof v==="object"&&/^omerta_(rank|online)\//.test(p)?{...v,u:uid()}:v;
 import {limiter} from "./guard.js";
 const LIM={omerta_chat:limiter(5,8000),omerta_dm:limiter(5,8000),omerta_news:limiter(12,20000),omerta_credit:limiter(20,20000)},LIMP=limiter(40,10000);
 export {ref,onChildAdded,query,orderByChild,limitToLast};
 import {key,setClock} from "./clean.js";
-// Paths are built from player ids and keys, so every segment is checked before it reaches the database.
 export const R=p=>{const s=String(p).split("/");if(!(p===".info/connected"||p===".info/serverTimeOffset"||s.every(x=>key(x))))throw new Error("bad path");return ref(rtdb,p)};
 export const watch=(p,f)=>{let off=()=>{},dead=false;try{R(p)}catch(e){return()=>{}}
   ready.then(()=>{if(dead)return;try{off=onValue(R(p),x=>f(x.val()),()=>f(null))}catch(e){f(null)}});return()=>{dead=true;off()}};
@@ -31,7 +27,6 @@ try{onValue(R(".info/serverTimeOffset"),x=>{off=+x.val()||0})}catch(e){}
 export const pairKey=(a,b)=>[a,b].sort().join("_");
 export {text as clip} from "./clean.js";
 export const ago=t=>{const m=Math.max(0,Math.round((serverNow()-t)/6e4));return m<1?"now":m<60?m+"m":m<1440?Math.round(m/60)+"h":Math.round(m/1440)+"d"};
-// Who may write for a paper: the five candidates with the most votes (at least one), earliest application breaking ties.
 export const staffOf=(apps,votes)=>Object.entries(apps||{}).map(([id,a])=>({id,...a,v:Object.keys((votes||{})[id]||{}).length}))
   .sort((a,b)=>b.v-a.v||a.t-b.t);
 export const seats=list=>list.filter(c=>c.v>0).slice(0,5);

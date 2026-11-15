@@ -91,7 +91,6 @@ function Thread({peer,back,id,name,inbox}){
     <Typing scope={pk} id={id}/><Composer onSend={go} ph="Write a message" scope={pk} id={id} name={name}/></div>);
 }
 
-// Filler so a paper is never blank: stories drawn from the player's own game, clearly marked as wire copy.
 const wire=(s,k)=>{const o=[];
   if(k==="normal"){(s.log||[]).slice(0,3).forEach(l=>o.push({h:"City desk",b:l.x}));o.push({h:"Markets",b:`Omerta Coin changed hands near ${G.$(s.omc.p)} today.`})}
   else{o.push({h:"Overheard",b:s.heat>66?"Unmarked cars outside the docks again. Somebody's name is on a list.":s.heat>33?"Fewer lights on at the pier than usual.":"Quiet week. Which is its own kind of news."});o.push({h:"Overheard",b:"A stranger at the Velvet Room asked for nobody by name."})}

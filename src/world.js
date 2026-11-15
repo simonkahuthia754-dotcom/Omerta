@@ -1,4 +1,3 @@
-// The shared world: finite stock of goods and who owns each place. Shared through the database when it is set up;
 // otherwise it runs in solo mode on this phone, with the same rules.
 import {useState,useEffect,useRef} from "react";
 import {watch,watchTop,put,add,tx,serverNow,configured} from "./live.js";
@@ -29,7 +28,6 @@ export function useWorld(me,s,go,name){
   // Money from places that were bought off this player arrives as credits.
   useEffect(()=>{if(!configured)return;const seen=new Set();return watch("omerta_credit/"+me,v=>{if(!v||typeof v!=="object")return;Object.keys(v).forEach(k=>{const r=v[k],sk=k+":"+(r&&r.t);if(seen.has(sk)||!C.key(k))return;seen.add(sk);
     if(r&&Number.isFinite(r.a)&&r.a>0&&r.a<1e19&&LM[r.id]){go({t:"credit",a:r.a,id:r.id});put(`omerta_credit/${me}/${k}`,null)}})})},[me]);
-  // Live world ranking: everyone posts their net worth about once a minute, and the top 200 are read back.
   useEffect(()=>{if(!configured)return;const post=()=>{const c=live.current;if(!c.s||!c.name)return;const w=Math.round(worth(c.s).total);if(Number.isFinite(w)&&w>=0)put("omerta_rank/"+me,{n:c.name,w,t:serverNow()})};
     post();const h=setInterval(post,60000);const u=watchTop("omerta_rank",200,v=>setTop(cleanRank(v)));return()=>{clearInterval(h);u()}},[me]);
   const mine=s?Math.round(worth(s).total):0;
