@@ -41,12 +41,12 @@ export const FX=[
 ];
 export const STORE=[{n:"Garage",slots:16,cost:0},{n:"Pier locker",slots:36,cost:600000},{n:"Bunker vault",slots:80,cost:2400000},{n:"Mountain vault",slots:160,cost:8000000}];
 export const ITEMS=[
-  {id:"chip",n:"Casino chip",p:500,s:1,pre:1,lvl:1,k:"Pockets",i:"chip",t:"Opens doors on the strip."},
-  {id:"whiskey",n:"Single malt",p:800,s:1,pre:1,g:4,lvl:1,k:"Cellar",i:"glass",t:"Twenty-one years in the barrel."},
+  {id:"chip",img:"item-chip.jpg",n:"Casino chip",p:500,s:1,pre:1,lvl:1,k:"Pockets",i:"chip",t:"Opens doors on the strip."},
+  {id:"whiskey",img:"item-whiskey.jpg",n:"Single malt",p:800,s:1,pre:1,g:4,lvl:1,k:"Cellar",i:"glass",t:"Twenty-one years in the barrel."},
   {id:"rose",n:"Roses",p:300,s:1,pre:0,g:3,lvl:1,k:"For them",i:"rose",t:"A dozen, red, from the good florist."},
-  {id:"watch",n:"Gold watch",p:3500,s:1,pre:4,g:8,lvl:3,k:"Pockets",i:"watch",t:"Always five minutes early."},
-  {id:"cigars",n:"Cuban cigars",p:1200,s:1,pre:2,g:5,lvl:4,k:"Pockets",i:"cigar",t:"A box of twenty. Don't ask."},
-  {id:"suit",n:"Tailored suit",p:6000,s:1,pre:4,g:6,lvl:5,k:"Pockets",i:"suit",t:"Cut by a man who has never needed a tape measure."},
+  {id:"watch",img:"item-watch.jpg",n:"Gold watch",p:3500,s:1,pre:4,g:8,lvl:3,k:"Pockets",i:"watch",t:"Always five minutes early."},
+  {id:"cigars",img:"item-cigars.jpg",n:"Cuban cigars",p:1200,s:1,pre:2,g:5,lvl:4,k:"Pockets",i:"cigar",t:"A box of twenty. Don't ask."},
+  {id:"suit",img:"item-suit.jpg",n:"Tailored suit",p:6000,s:1,pre:4,g:6,lvl:5,k:"Pockets",i:"suit",t:"Cut by a man who has never needed a tape measure."},
   {id:"blade",n:"Switchblade",p:400,s:1,pre:0,lvl:2,k:"Cellar",i:"dagger",w:1,t:"Quiet, cheap and older than you are."},
   {id:"revolver",n:"Snub revolver",p:1800,s:1,pre:1,lvl:4,k:"Cellar",i:"pistol",w:1,t:"Six rounds and no safety to forget."},
   {id:"nine",img:"gun-9mm.jpg",n:"Compact 9mm",p:1200,s:1,pre:2,lvl:3,k:"Cellar",i:"pistol",w:1,t:"Matte black, nothing to look at. That is the point."},
@@ -56,7 +56,7 @@ export const ITEMS=[
   {id:"bag",n:"Designer handbag",p:9000,s:1,pre:3,g:10,lvl:8,k:"For them",i:"bag",t:"Comes in its own dust bag. Has its own dust bag."},
   {id:"case",n:"Briefcase",p:10000,s:1,pre:3,lvl:10,k:"Cellar",i:"case",t:"Nobody asks what's inside."},
   {id:"car",img:"car-sport.jpg",n:"Sports car",p:50000,s:3,pre:10,lvl:12,k:"Wheels",i:"car",t:"Fast, and very easy to spot."},
-  {id:"necklace",n:"Diamond necklace",p:45000,s:1,pre:8,g:18,lvl:14,k:"For them",i:"ring",t:"You will be thanked for months."},
+  {id:"necklace",img:"item-necklace.jpg",n:"Diamond necklace",p:45000,s:1,pre:8,g:18,lvl:14,k:"For them",i:"ring",t:"You will be thanked for months."},
   {id:"ring",n:"Engagement ring",p:120000,s:1,pre:10,g:0,lvl:16,k:"For them",i:"ring",t:"Save it for the right night."},
   {id:"limo",img:"limo.jpg",n:"Armored limo",p:250000,s:4,pre:25,lvl:22,k:"Wheels",i:"car",t:"Windows that stop more than sunlight."},
   {id:"hyper",img:"car-hyper.jpg",n:"Hypercar",p:1800000,s:5,pre:90,lvl:34,k:"Wheels",i:"car",t:"Two seats, one exhaust note, no chance of staying quiet."},
@@ -296,7 +296,22 @@ export const fresh=(now=Date.now(),keep={})=>{
     log:[{t:now,x:leg?"The keys are yours now. Your father left a lot of enemies and a little money.":"Sal's old keys are yours now. Don't lose them."}],fx};
   return s;
 };
-export const load=()=>{try{const j=JSON.parse(localStorage.getItem(KEY));if(j&&j.v===3){if(!j.omc)j.omc=newOmc();if(!j.eco)j.eco={};if(!j.land)j.land={};if(!j.off)j.off=0;if(!j.frac)j.frac=0;if(!j.bk)j.bk=0;if(!j.bi)j.bi=[];return j}}catch(e){}return fresh()};
+// A save file lives in storage anyone can edit, so it is rebuilt before use: wrong types fall back to defaults, numbers must be finite,
+// prototype-pollution keys are dropped, and every id in a collection must be a real thing in the game.
+const BADK=new Set(["__proto__","constructor","prototype"]),rev=(k,v)=>BADK.has(k)?undefined:v;
+const plain=o=>o&&typeof o==="object"&&!Array.isArray(o);
+const only=(o,ok,f)=>Object.fromEntries(Object.entries(plain(o)?o:{}).filter(([k,v])=>ok(k)&&f(v)));
+export const sane=j=>{const f=fresh(Date.now(),{leg:0}),o={...j};
+  for(const k of Object.keys(f)){const a=j[k],b=f[k];o[k]=typeof b==="number"?(Number.isFinite(a)?a:b):Array.isArray(b)?(Array.isArray(a)?a:b):b&&typeof b==="object"?(plain(a)?a:b):b===null?(a===null||plain(a)?(a===undefined?null:a):null):typeof a===typeof b?a:b}
+  ["cash","dirty","res","en","friends","parties","store","leg","off","frac","bk","jobsDone","jail","wins","raids","best","wc"].forEach(k=>{o[k]=Math.max(0,o[k])});
+  o.lv=Math.max(1,Math.floor(o.lv));o.heat=Math.min(100,Math.max(0,o.heat));o.off=Math.min(OFFICE_MAX,Math.floor(o.off));o.v=3;
+  o.biz=only(o.biz,k=>BM[k],v=>plain(v)&&Number.isFinite(v.l)&&v.l>=1&&v.l<=999);
+  o.inv=only(o.inv,k=>IM[k],v=>Number.isFinite(v)&&v>0);o.est=only(o.est,k=>IM[k],v=>Number.isFinite(v));
+  o.eco=only(o.eco,k=>EI[k],v=>Number.isFinite(v)&&v>0);o.land=only(o.land,k=>LM[k],plain);
+  o.bi=o.bi.filter(x=>plain(x)&&PM[x.id]&&Number.isFinite(x.a)&&x.a>0&&Number.isFinite(x.t)&&Number.isFinite(x.e)).slice(0,8);
+  o.log=o.log.filter(x=>plain(x)&&typeof x.x==="string").slice(0,60);
+  return o};
+export const load=()=>{try{const j=JSON.parse(localStorage.getItem(KEY),rev);if(plain(j)&&j.v===3){if(!j.omc)j.omc=newOmc();if(!j.eco)j.eco={};if(!j.land)j.land={};if(!j.off)j.off=0;if(!j.frac)j.frac=0;if(!j.bk)j.bk=0;if(!j.bi)j.bi=[];return sane(j)}}catch(e){}return fresh()};
 
 function closePos(s,o,why){
   const v=Math.max(0,eq(o,s.fx.p[o.pair])),pl=v-o.st;
@@ -349,6 +364,11 @@ function apply(s,fx){
 }
 
 export function reduce(st,a){
+  // Actions come from the UI, but they are still checked: an id must look like an id and must not be an inherited name like "constructor",
+  // and a numeric amount must be a real finite number.
+  if(!a||typeof a.t!=="string")return st;
+  if(a.id!==undefined&&(typeof a.id!=="string"||!/^[A-Za-z0-9_]{1,48}$/.test(a.id)||a.id in Object.prototype))return st;
+  if(a.amt!==undefined&&!(Number.isFinite(a.amt)&&a.amt>=0))return st;
   NOW=a.now||0;const s=structuredClone(st),now=clock(),no=x=>{s.toast={k:Math.random(),x};return s},broke=()=>no("You're short on clean cash for that."),cell=()=>jailed(s)?no(`You're locked up for another ${hm(s.jail-now)}. Pay bail or wait it out.`):null;
   const spend=n=>{const full=s.en>=enMax(s);s.en-=n;if(full)s.enT=now};
   switch(a.t){

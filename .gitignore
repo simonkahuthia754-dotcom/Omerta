@@ -1,0 +1,10 @@
+node_modules
+dist
+android
+.env
+.env.*
+*.keystore
+*.jks
+keystore.properties
+serviceAccount*.json
+*.pem

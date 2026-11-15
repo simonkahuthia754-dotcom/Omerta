@@ -3,68 +3,76 @@
   ".read": false,
   ".write": false,
   "omerta_chat": {
-   ".read": true,
+   ".read": "auth != null && query.limitToLast <= 200",
+   ".indexOn": ["timestamp"],
    "$m": {
-    ".write": "!data.exists()",
-    ".validate": "newData.hasChildren(['username','text','timestamp']) && newData.child('text').isString() && newData.child('text').val().length > 0 && newData.child('text').val().length <= 300 && newData.child('username').isString() && newData.child('username').val().matches(/^[A-Za-z0-9_]{3,16}$/) && newData.child('timestamp').val() <= now + 300000 && newData.child('timestamp').val() >= now - 300000 && !newData.hasChild('gif')",
-    "$other": {
-     ".validate": "$other == 'username' || $other == 'text' || $other == 'timestamp' || $other == 'uid' || $other == 'flag'"
-    }
+    ".write": "auth != null && !data.exists()",
+    ".validate": "newData.hasChildren(['username','text','timestamp','uid']) && newData.child('text').isString() && newData.child('text').val().length > 0 && newData.child('text').val().length <= 300 && newData.child('username').isString() && newData.child('username').val().matches(/^[A-Za-z0-9_]{3,16}$/) && newData.child('uid').isString() && newData.child('uid').val().matches(/^OM-[A-Z0-9]{4}$/) && newData.child('timestamp').isNumber() && newData.child('timestamp').val() <= now + 300000 && newData.child('timestamp').val() >= now - 300000",
+    "flag": {".validate": "newData.isString() && newData.val().length <= 8"},
+    "$other": {".validate": "$other == 'username' || $other == 'text' || $other == 'timestamp' || $other == 'uid' || $other == 'flag'"}
    }
   },
   "omerta_online": {
-   ".read": true,
+   ".read": "auth != null",
    "$id": {
-    ".validate": "$id.matches(/^OM-[A-Z0-9]{4}$/)",
-    ".write": true,
-    "n": {
-     ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_]{3,16}$/)"
-    },
-    "t": {
-     ".validate": "newData.isNumber()"
-    }
+    ".write": "auth != null && $id.matches(/^OM-[A-Z0-9]{4}$/) && (!data.exists() || data.child('u').val() === auth.uid)",
+    ".validate": "newData.hasChildren(['n','t','u'])",
+    "n": {".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_]{3,16}$/)"},
+    "t": {".validate": "newData.isNumber()"},
+    "u": {".validate": "newData.val() === auth.uid"},
+    "$other": {".validate": false}
    }
   },
   "omerta_typing": {
-   ".read": true,
+   ".read": "auth != null",
    "$scope": {
     "$id": {
-     ".validate": "$id.matches(/^OM-[A-Z0-9]{4}$/)",
-     ".write": true
+     ".write": "auth != null && $id.matches(/^OM-[A-Z0-9]{4}$/)",
+     ".validate": "newData.hasChildren(['n','t'])",
+     "n": {".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_]{3,16}$/)"},
+     "t": {".validate": "newData.isNumber()"},
+     "$other": {".validate": false}
     }
    }
   },
   "omerta_inbox": {
    "$id": {
-    ".read": true,
+    ".read": "auth != null",
     "$from": {
-     ".write": true,
-     ".validate": "newData.hasChildren(['text','t']) && newData.child('text').val().length <= 120"
+     ".write": "auth != null && $id.matches(/^OM-[A-Z0-9]{4}$/) && $from.matches(/^OM-[A-Z0-9]{4}$/)",
+     ".validate": "newData.hasChildren(['text','t']) && newData.child('text').isString() && newData.child('text').val().length <= 120 && newData.child('t').isNumber()",
+     "name": {".validate": "newData.isString() && newData.val().length <= 16"},
+     "text": {".validate": "newData.isString()"},
+     "t": {".validate": "newData.isNumber()"},
+     "u": {".validate": "newData.val() === 0 || newData.val() === 1"},
+     "$other": {".validate": false}
     }
    }
   },
   "omerta_dm": {
    "$pair": {
-    ".read": true,
+    ".read": "auth != null && $pair.matches(/^OM-[A-Z0-9]{4}_OM-[A-Z0-9]{4}$/)",
     "$m": {
-     ".write": "!data.exists()",
-     ".validate": "newData.hasChildren(['from','text','t']) && newData.child('text').val().length <= 300 && newData.child('from').val().matches(/^OM-[A-Z0-9]{4}$/)"
+     ".write": "auth != null && !data.exists() && $pair.matches(/^OM-[A-Z0-9]{4}_OM-[A-Z0-9]{4}$/)",
+     ".validate": "newData.hasChildren(['from','text','t']) && newData.child('text').isString() && newData.child('text').val().length > 0 && newData.child('text').val().length <= 300 && newData.child('from').val().matches(/^OM-[A-Z0-9]{4}$/) && $pair.contains(newData.child('from').val()) && newData.child('t').isNumber() && newData.child('t').val() <= now + 300000 && newData.child('t').val() >= now - 300000",
+     "$other": {".validate": "$other == 'from' || $other == 'text' || $other == 't'"}
     }
    }
   },
   "omerta_news": {
-   ".read": true,
+   ".read": "auth != null",
    "$paper": {
     "apps": {
      "$id": {
-      ".validate": "$id.matches(/^OM-[A-Z0-9]{4}$/)",
-      ".write": true
+      ".write": "auth != null && $id.matches(/^OM-[A-Z0-9]{4}$/)",
+      ".validate": "newData.hasChildren(['name','pitch','t']) && newData.child('name').isString() && newData.child('name').val().length <= 16 && newData.child('pitch').isString() && newData.child('pitch').val().length <= 140 && newData.child('t').isNumber()",
+      "$other": {".validate": "$other == 'name' || $other == 'pitch' || $other == 't'"}
      }
     },
     "votes": {
      "$c": {
       "$v": {
-       ".write": true,
+       ".write": "auth != null && $c.matches(/^OM-[A-Z0-9]{4}$/) && $v.matches(/^OM-[A-Z0-9]{4}$/)",
        ".validate": "newData.val() === 1 && $v != $c"
       }
      }
@@ -72,59 +80,57 @@
     "likes": {
      "$p": {
       "$v": {
-       ".write": true,
+       ".write": "auth != null && $v.matches(/^OM-[A-Z0-9]{4}$/)",
        ".validate": "newData.val() === 1"
       }
      }
     },
     "posts": {
      "$p": {
-      ".write": "!data.exists()",
-      ".validate": "newData.child('title').val().length <= 80 && newData.child('body').val().length <= 700"
+      ".write": "auth != null && !data.exists()",
+      ".validate": "newData.hasChildren(['uid','name','title','body','t']) && newData.child('title').isString() && newData.child('title').val().length >= 4 && newData.child('title').val().length <= 80 && newData.child('body').isString() && newData.child('body').val().length >= 20 && newData.child('body').val().length <= 700 && newData.child('uid').val().matches(/^OM-[A-Z0-9]{4}$/) && newData.child('t').isNumber() && newData.child('t').val() <= now + 300000 && newData.child('t').val() >= now - 300000",
+      "$other": {".validate": "$other == 'uid' || $other == 'name' || $other == 'title' || $other == 'body' || $other == 't'"}
      }
     }
    }
   },
   "omerta_stock": {
-   ".read": true,
+   ".read": "auth != null",
    "$item": {
-    ".write": true,
-    ".validate": "newData.hasChildren(['n','t']) && newData.child('n').isNumber() && newData.child('n').val() >= 0 && newData.child('n').val() <= 1300 && newData.child('t').isNumber()"
+    ".write": "auth != null && $item.matches(/^[A-Za-z0-9_]{1,48}$/)",
+    ".validate": "newData.hasChildren(['n','t']) && newData.child('n').isNumber() && newData.child('n').val() >= 0 && newData.child('n').val() <= 1299 && newData.child('t').isNumber() && (!data.exists() || newData.child('n').val() === data.child('n').val() - 1 || (data.child('n').val() === 0 && data.child('t').val() <= now))",
+    "$other": {".validate": "$other == 'n' || $other == 't'"}
    }
   },
   "omerta_land": {
-   ".read": true,
+   ".read": "auth != null",
    "$place": {
-    ".write": true,
-    ".validate": "newData.hasChildren(['o','p']) && newData.child('o').val().matches(/^OM-[A-Z0-9]{4}$/) && newData.child('p').isNumber() && newData.child('p').val() > 0 && (!newData.child('nm').exists() || newData.child('nm').val().length <= 16)"
+    ".write": "auth != null && $place.matches(/^[A-Za-z0-9_]{1,48}$/)",
+    ".validate": "newData.hasChildren(['o','p']) && newData.child('o').val().matches(/^OM-[A-Z0-9]{4}$/) && newData.child('p').isNumber() && newData.child('p').val() > 0 && newData.child('p').val() < 100000000000000000000 && (!newData.child('nm').exists() || (newData.child('nm').isString() && newData.child('nm').val().length <= 16)) && (!data.exists() || newData.child('p').val() >= data.child('p').val())",
+    "$other": {".validate": "$other == 'o' || $other == 'nm' || $other == 'p' || $other == 'pw' || $other == 't'"}
    }
   },
   "omerta_credit": {
    "$id": {
-    ".read": true,
+    ".read": "auth != null",
     "$k": {
-     ".write": true,
-     ".validate": "newData.hasChildren(['a','id']) && newData.child('a').isNumber() && newData.child('a').val() > 0"
+     ".write": "auth != null && $id.matches(/^OM-[A-Z0-9]{4}$/) && (!newData.exists() || ((!data.exists() || newData.child('t').val() > data.child('t').val()) && $k === newData.child('id').val() && newData.child('a').val() === root.child('omerta_land').child($k).child('p').val() && newData.child('t').val() === root.child('omerta_land').child($k).child('t').val() && root.child('omerta_land').child($k).child('o').val() !== $id))",
+     ".validate": "!newData.exists() || (newData.hasChildren(['a','id','t']) && newData.child('a').isNumber() && newData.child('a').val() > 0 && newData.child('a').val() < 10000000000000000000)",
+     "$other": {".validate": "$other == 'a' || $other == 'id' || $other == 't'"}
     }
    }
   },
   "omerta_rank": {
-   ".read": true,
-   ".indexOn": [
-    "w"
-   ],
+   ".read": "auth != null && query.limitToLast <= 200",
+   ".indexOn": ["w"],
    "$id": {
-    ".validate": "$id.matches(/^OM-[A-Z0-9]{4}$/)",
-    ".write": true,
-    "n": {
-     ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_]{3,16}$/)"
-    },
-    "w": {
-     ".validate": "newData.isNumber() && newData.val() >= 0"
-    },
-    "t": {
-     ".validate": "newData.isNumber()"
-    }
+    ".write": "auth != null && $id.matches(/^OM-[A-Z0-9]{4}$/) && (!data.exists() || data.child('u').val() === auth.uid)",
+    ".validate": "newData.hasChildren(['n','w','t','u'])",
+    "n": {".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_]{3,16}$/)"},
+    "w": {".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 1000000000000000000000000"},
+    "t": {".validate": "newData.isNumber()"},
+    "u": {".validate": "newData.val() === auth.uid"},
+    "$other": {".validate": false}
    }
   }
  }

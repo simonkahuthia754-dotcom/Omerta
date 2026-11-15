@@ -6,8 +6,9 @@ import {Social} from "./social.jsx";
 import {Economy} from "./econ.jsx";
 import {Bank} from "./bank.jsx";
 import {useWorld} from "./world.js";
-import {R,watch,put,add,query,orderByChild,limitToLast,onChildAdded,serverNow} from "./live.js";
+import {R,ready,watch,put,add,query,orderByChild,limitToLast,onChildAdded,serverNow} from "./live.js";
 import * as C from "./clean.js";
+import * as Gd from "./guard.js";
 
 const store={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
 const ID={id:C.id((store.get("omerta_id")||"").toUpperCase())||"OM-"+Math.random().toString(36).slice(2,6).toUpperCase(),name:C.name(store.get("omerta_name"))||"DON_V"};
@@ -46,13 +47,14 @@ function Cover({open,unlock}){
   const shake=m=>{setBad(true);setMsg(m||"");setPin("");setTimeout(()=>setBad(false),500)};
   const key=k=>{
     if(k==="Clear")return setPin("");if(k==="Delete")return setPin(p=>p.slice(0,-1));if(pin.length>=4)return;
+    const w=Gd.lockLeft();if(stage==="enter"&&w>0)return setMsg("Too many wrong tries. Wait "+Math.ceil(w/1000)+" seconds.");
     const n=pin+k;setPin(n);setMsg("");
     if(n.length<4)return;
-    setTimeout(()=>{
+    setTimeout(async()=>{
       if(stage==="create"){setFirst(n);setPin("")}
-      else if(stage==="confirm"){if(n===first){store.set("omerta_pin",n);setFirst("");setPin("");unlock()}else{setFirst("");shake("Those didn't match. Start again.")}}
-      else if(saved===n){setPin("");setAsk(0);unlock()}
-      else shake("Wrong PIN.");
+      else if(stage==="confirm"){if(n===first){store.set("omerta_pin",await Gd.makePin(n));Gd.right();setFirst("");setPin("");unlock()}else{setFirst("");shake("Those didn't match. Start again.")}}
+      else if(await Gd.checkPin(n,saved)){Gd.right();if(Gd.legacy(saved))store.set("omerta_pin",await Gd.makePin(n));setPin("");setAsk(0);unlock()}
+      else{Gd.wrong();const l=Gd.lockLeft();shake(l>0?"Too many wrong tries. Wait "+Math.ceil(l/1000)+" seconds.":"Wrong PIN.")}
     },180);
   };
   const reset=()=>{if(ask<1)return setAsk(1);try{localStorage.removeItem("omerta_pin");localStorage.removeItem("omerta_save_v3")}catch(e){}location.reload()};
@@ -74,8 +76,10 @@ export default function App(){
     const save=()=>store.set(KEY,JSON.stringify(sv.current));window.addEventListener("pagehide",save);document.addEventListener("visibilitychange",save);
     return()=>{clearInterval(a);clearInterval(b);window.removeEventListener("pagehide",save)}},[]);
   useEffect(()=>{
-    try{const q=query(R("omerta_chat"),orderByChild("timestamp"),limitToLast(60));
-      return onChildAdded(q,x=>{const v=C.chatMsg(x.val()),k=C.key(x.key);if(v&&k)setChat(p=>p.some(m=>m.k===k)?p:[...p.slice(-59),{...v,k}])})}catch(e){}
+    let off=()=>{},dead=false;
+    ready.then(()=>{if(dead)return;try{const q=query(R("omerta_chat"),orderByChild("timestamp"),limitToLast(60));
+      off=onChildAdded(q,x=>{const v=C.chatMsg(x.val()),k=C.key(x.key);if(v&&k)setChat(p=>p.some(m=>m.k===k)?p:[...p.slice(-59),{...v,k}])})}catch(e){}});
+    return()=>{dead=true;off()}
   },[]);
   useEffect(()=>watch(".info/connected",v=>setNet(!!v)),[]);
   useEffect(()=>watch("omerta_inbox/"+ID.id,v=>setInbox(C.inbox(v))),[]);

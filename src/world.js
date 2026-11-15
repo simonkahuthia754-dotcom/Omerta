@@ -27,7 +27,7 @@ export function useWorld(me,s,go,name){
   // Places that someone else now holds are removed from this player's list.
   useEffect(()=>{if(!s)return;Object.keys(s.land||{}).forEach(k=>{const r=land[k];if(r&&r.o!==me&&Object.keys(land).length)go({t:"landLost",id:k,by:r.nm})})},[land,me]);
   // Money from places that were bought off this player arrives as credits.
-  useEffect(()=>{if(!configured)return;const seen=new Set();return watch("omerta_credit/"+me,v=>{if(!v||typeof v!=="object")return;Object.keys(v).forEach(k=>{if(seen.has(k)||!C.key(k))return;seen.add(k);const r=v[k];
+  useEffect(()=>{if(!configured)return;const seen=new Set();return watch("omerta_credit/"+me,v=>{if(!v||typeof v!=="object")return;Object.keys(v).forEach(k=>{const r=v[k],sk=k+":"+(r&&r.t);if(seen.has(sk)||!C.key(k))return;seen.add(sk);
     if(r&&Number.isFinite(r.a)&&r.a>0&&r.a<1e19&&LM[r.id]){go({t:"credit",a:r.a,id:r.id});put(`omerta_credit/${me}/${k}`,null)}})})},[me]);
   // Live world ranking: everyone posts their net worth about once a minute, and the top 200 are read back.
   useEffect(()=>{if(!configured)return;const post=()=>{const c=live.current;if(!c.s||!c.name)return;const w=Math.round(worth(c.s).total);if(Number.isFinite(w)&&w>=0)put("omerta_rank/"+me,{n:c.name,w,t:serverNow()})};
@@ -56,5 +56,5 @@ export async function claimLand(P,me,how,expect){
     if(!cur||!cur.o||cur.o===me.id)return;
     if(how==="buyout")return cur.p===expect?make(cur,takeoverPrice(cur.p)):undefined;
     return make(cur,cur.p)});
-  if(r.ok&&how==="buyout"&&prev&&C.id(prev.o))add("omerta_credit/"+prev.o,{a:takeoverPrice(prev.p),id:P.id,t:now});
+  if(r.ok&&how==="buyout"&&prev&&C.id(prev.o))put(`omerta_credit/${prev.o}/${P.id}`,{a:takeoverPrice(prev.p),id:P.id,t:now});
   return{ok:r.ok,err:r.err}}

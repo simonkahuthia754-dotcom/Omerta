@@ -7,5 +7,9 @@
     "Keyboard": {
       "resize": "none"
     }
+  },
+  "android": {
+    "allowMixedContent": false,
+    "webContentsDebuggingEnabled": false
   }
 }

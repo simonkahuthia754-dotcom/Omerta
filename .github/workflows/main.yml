@@ -5,6 +5,9 @@ on:
     branches: [main, master]
   workflow_dispatch: {}
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -48,6 +51,13 @@ jobs:
           M=android/app/src/main/AndroidManifest.xml
           if grep -q windowSoftInputMode "$M"; then sed -i 's/android:windowSoftInputMode="[^"]*"/android:windowSoftInputMode="adjustResize"/' "$M"; else sed -i 's/android:name="\.MainActivity"/android:name=".MainActivity" android:windowSoftInputMode="adjustResize"/' "$M"; fi
           grep -c adjustResize "$M"
+
+      - name: Lock the app down (no backups, no cleartext traffic)
+        run: |
+          M=android/app/src/main/AndroidManifest.xml
+          sed -i 's/android:allowBackup="true"/android:allowBackup="false"/' "$M"
+          if ! grep -q usesCleartextTraffic "$M"; then sed -i 's/<application/<application android:usesCleartextTraffic="false"/' "$M"; fi
+          grep -c 'allowBackup="false"' "$M"
 
       - name: Sync web build into the Android project
         run: npx cap sync android
