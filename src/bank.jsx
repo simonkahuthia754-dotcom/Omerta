@@ -17,7 +17,7 @@ export function Bank({s,go,name}){
   return(<div className="ofc">
     <div className="ofhero bankhero">
       <img src={IMG(G.BANK_IMG)} alt="" draggable="false"/><div className="ofshade"/>
-      <div className="oftitle"><small>Fidelity Savings</small><h1>The vault</h1><span>{name}'s account · safe from raids</span></div>
+      <div className="oftitle"><small>Ferrante Savings</small><h1>The vault</h1><span>{name}'s account · safe from raids</span></div>
     </div>
     <div className="ofgrid">
       <Tile k="Cash on hand" v={$(s.cash)} sub="Raids can take this"/>

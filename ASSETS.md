@@ -1,0 +1,21 @@
+# Image and name clean-up (legal risk)
+
+This is a risk checklist, not legal advice. The code cannot tell where a picture came from, so the owner has to confirm each source.
+
+## Removed or fixed
+- `land-l0_2` (Market Street): a photo of an identifiable woman. Removed. People's faces need their written permission.
+- `land-l3_1` (Tokyo): a photo of an identifiable woman. Not added. Use a Tokyo skyline instead.
+- `land-l0_1` (Old Quarter): had a visible "Meta AI" watermark. Removed. Add a replacement you made yourself or have a licence for.
+- `biz-pawn` (Gold & Pawn): a real pawn shop with its real phone numbers and card-scheme logos. Removed.
+- `biz-corner`: Coca-Cola and newspaper logos blurred. The shop sign still shows a real shop name.
+- `biz-laundromat`: review-site logo blurred.
+- `item-revolver`: maker name and serial number blurred.
+- "Fidelity Savings" renamed "Ferrante Savings" (Fidelity is a real financial brand).
+
+## Still needs a decision from the owner
+- **Where each picture came from.** Photos found on the web (towns and cities, shop fronts, hotels, blade, revolver, sports car, necklace, watch, cigars, whisky, chips, yacht shots) are normally copyrighted by the photographer, even without a watermark. Keep a licence, receipt or screenshot of the licence page for each, or replace them with pictures you made or bought. Pictures you generated yourself (badges, passport cards, characters, offices, houses) are lower risk, but read the generator's terms for commercial use.
+- **The word "Mafia".** The passport card pictures, `logo.png` and `favicon.png` say "MAFIA". That is a registered video-game trademark. Avoid it in the app name and store listing, and ideally regenerate those pictures.
+- **The name "Omertà".** Other games use it. Run a trademark search in the countries you publish in before launch.
+- **Real buildings and cars.** The Las Vegas hotel photos and the red sports car show real, recognisable brands. Low risk in a game, but replace them if a rights holder complains.
+- **Privacy policy.** Chat, player ids and sign-in go through Firebase. Google Play requires a privacy policy and a data-safety form.
+- **Git history.** Removed pictures stay in earlier commits. If a picture must vanish completely, rewrite history or recreate the repository.

@@ -11,7 +11,7 @@ export const hm=ms=>{const m=Math.ceil(ms/MIN);return m>=60?Math.floor(m/60)+"h 
 // ---- data ----
 export const CITY_IMG="city-night.jpg";
 export const hqImg=s=>"hq-"+Math.max(1,Math.min(5,officeTier(s.off||0)))+".jpg";
-export const BIZ_IMG={corner:"biz-corner.jpg",pawn:"biz-pawn.jpg",laundromat:"biz-laundromat.jpg",restaurant:"biz-restaurant.jpg",warehouse:"biz-warehouse.jpg",hotel:"biz-hotel.jpg",bank:"biz-bank.jpg",shipping:"biz-shipping.jpg",casino:"casino.jpg"};
+export const BIZ_IMG={corner:"biz-corner.jpg",laundromat:"biz-laundromat.jpg",restaurant:"biz-restaurant.jpg",warehouse:"biz-warehouse.jpg",hotel:"biz-hotel.jpg",bank:"biz-bank.jpg",shipping:"biz-shipping.jpg",casino:"casino.jpg"};
 export const BANK_IMG="bank-vault.jpg";
 // Bank: clean cash kept in the vault is safe from raids, earns slow interest, and can be put into fixed-term investments.
 export const BANK_RATE=.004; // per hour on the vault balance
@@ -32,7 +32,7 @@ export const BIZ=[
   {id:"warehouse",n:"Pier 14 Warehouse",d:"Crates come in. Crates go out.",lvl:18,cost:1500000,inc:70000,heat:6},
   {id:"casino",n:"Golden Ace Casino",d:"The house always eats.",lvl:24,cost:3200000,inc:150000,heat:5},
   {id:"hotel",n:"Hotel Meridian",d:"Forty floors of people who'd rather not be found.",lvl:32,cost:9000000,inc:400000,heat:4},
-  {id:"bank",n:"Fidelity Savings",d:"A small bank with big friends.",lvl:40,cost:18000000,inc:780000,heat:4},
+  {id:"bank",n:"Ferrante Savings",d:"A small bank with big friends.",lvl:40,cost:18000000,inc:780000,heat:4},
   {id:"shipping",n:"Meridian Lines",d:"Forty ships. Nobody opens the containers.",lvl:48,cost:45000000,inc:1800000,heat:6},
 ];
 export const FX=[

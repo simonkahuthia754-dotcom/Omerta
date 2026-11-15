@@ -137,5 +137,5 @@ export const takeoverPrice=p=>p*3;                  // buying someone out costs 
 export const landIncome=s=>Object.keys(s.land||{}).reduce((a,k)=>a+(LM[k]?landRate({p:(s.land[k].p)||LM[k].p}):0),0);
 // Ids that have art in public/img: eco-<id>.jpg for goods, office-1..3.jpg for offices. Add ids here as pictures arrive.
 export const ART=new Set(["re_3_3","re_3_4","lx_6_2"]);   // Grand hotel, Palace hotel
-export const LAND_ART=new Set(["l0_0","l0_1","l0_2","l0_3","l0_4","l0_5","l1_0","l1_1","l1_2","l1_3","l1_4","l2_0","l2_1","l2_2"]);   // local area, town, and the first three cities
+export const LAND_ART=new Set(["l0_0","l0_3","l0_4","l0_5","l1_0","l1_1","l1_2","l1_3","l1_4","l2_0","l2_1","l2_2","l2_3","l2_4","l2_5","l3_0","l3_2","l3_3","l3_4"]);   // places with a photo. Left out on purpose: l0_1, l0_2 and l3_1 (see ASSETS.md)
 export const OFFICE_ART=new Set([1,2,3,4,5]);
