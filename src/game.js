@@ -11,7 +11,7 @@ export const hm=ms=>{const m=Math.ceil(ms/MIN);return m>=60?Math.floor(m/60)+"h 
 // ---- data ----
 export const CITY_IMG="city-night.jpg";
 export const hqImg=s=>"hq-"+Math.max(1,Math.min(5,officeTier(s.off||0)))+".jpg";
-export const BIZ_IMG={corner:"biz-corner.jpg",laundromat:"biz-laundromat.jpg",restaurant:"biz-restaurant.jpg",warehouse:"biz-warehouse.jpg",hotel:"biz-hotel.jpg",bank:"biz-bank.jpg",shipping:"biz-shipping.jpg",casino:"casino.jpg"};
+export const BIZ_IMG={corner:"biz-corner.jpg",laundromat:"biz-laundromat.jpg",restaurant:"biz-restaurant.jpg",warehouse:"biz-warehouse.jpg",nightclub:"biz-nightclub.jpg",hotel:"biz-hotel.jpg",bank:"biz-bank.jpg",shipping:"biz-shipping.jpg",casino:"casino.jpg"};
 export const BANK_IMG="bank-vault.jpg";
 export const BANK_RATE=.004; // per hour on the vault balance
 export const PLANS=[
@@ -42,7 +42,7 @@ export const STORE=[{n:"Garage",slots:16,cost:0},{n:"Pier locker",slots:36,cost:
 export const ITEMS=[
   {id:"chip",img:"item-chip.jpg",n:"Casino chip",p:500,s:1,pre:1,lvl:1,k:"Pockets",i:"chip",t:"Opens doors on the strip."},
   {id:"whiskey",img:"item-whiskey.jpg",n:"Single malt",p:800,s:1,pre:1,g:4,lvl:1,k:"Cellar",i:"glass",t:"Twenty-one years in the barrel."},
-  {id:"rose",n:"Roses",p:300,s:1,pre:0,g:3,lvl:1,k:"For them",i:"rose",t:"A dozen, red, from the good florist."},
+  {id:"rose",img:"item-rose.jpg",n:"Roses",p:300,s:1,pre:0,g:3,lvl:1,k:"For them",i:"rose",t:"A dozen, red, from the good florist."},
   {id:"watch",img:"item-watch.jpg",n:"Gold watch",p:3500,s:1,pre:4,g:8,lvl:3,k:"Pockets",i:"watch",t:"Always five minutes early."},
   {id:"cigars",img:"item-cigars.jpg",n:"Cuban cigars",p:1200,s:1,pre:2,g:5,lvl:4,k:"Pockets",i:"cigar",t:"A box of twenty. Don't ask."},
   {id:"suit",img:"item-suit.jpg",n:"Tailored suit",p:6000,s:1,pre:4,g:6,lvl:5,k:"Pockets",i:"suit",t:"Cut by a man who has never needed a tape measure."},
@@ -50,13 +50,13 @@ export const ITEMS=[
   {id:"revolver",img:"item-revolver.png",n:"Snub revolver",p:1800,s:1,pre:1,lvl:4,k:"Cellar",i:"pistol",w:1,t:"Six rounds and no safety to forget."},
   {id:"nine",img:"gun-9mm.jpg",n:"Compact 9mm",p:1200,s:1,pre:2,lvl:3,k:"Cellar",i:"pistol",w:1,t:"Matte black, nothing to look at. That is the point."},
   {id:"pistol",img:"pistol.png",n:"Gold pistol",p:2500,s:1,pre:3,lvl:6,k:"Cellar",i:"pistol",w:1,t:"For show. Mostly."},
-  {id:"lupara",n:"Lupara shotgun",p:7000,s:2,pre:3,lvl:9,k:"Cellar",i:"pistol",w:1,t:"Sawn-off, the old way. Family heirloom."},
+  {id:"lupara",img:"item-lupara.jpg",n:"Lupara shotgun",p:7000,s:2,pre:3,lvl:9,k:"Cellar",i:"pistol",w:1,t:"Sawn-off, the old way. Family heirloom."},
   {id:"tommy",n:"Tommy gun",p:45000,s:2,pre:12,lvl:18,k:"Cellar",i:"pistol",w:1,t:"Drum magazine. Subtle it is not."},
-  {id:"bag",n:"Designer handbag",p:9000,s:1,pre:3,g:10,lvl:8,k:"For them",i:"bag",t:"Comes in its own dust bag. Has its own dust bag."},
-  {id:"case",n:"Briefcase",p:10000,s:1,pre:3,lvl:10,k:"Cellar",i:"case",t:"Nobody asks what's inside."},
+  {id:"bag",img:"item-bag.jpg",n:"Designer handbag",p:9000,s:1,pre:3,g:10,lvl:8,k:"For them",i:"bag",t:"Comes in its own dust bag. Has its own dust bag."},
+  {id:"case",img:"item-case.jpg",n:"Briefcase",p:10000,s:1,pre:3,lvl:10,k:"Cellar",i:"case",t:"Nobody asks what's inside."},
   {id:"car",img:"car-sport.jpg",n:"Sports car",p:50000,s:3,pre:10,lvl:12,k:"Wheels",i:"car",t:"Fast, and very easy to spot."},
   {id:"necklace",img:"item-necklace.jpg",n:"Diamond necklace",p:45000,s:1,pre:8,g:18,lvl:14,k:"For them",i:"ring",t:"You will be thanked for months."},
-  {id:"ring",n:"Engagement ring",p:120000,s:1,pre:10,g:0,lvl:16,k:"For them",i:"ring",t:"Save it for the right night."},
+  {id:"ring",img:"item-ring.jpg",n:"Engagement ring",p:120000,s:1,pre:10,g:0,lvl:16,k:"For them",i:"ring",t:"Save it for the right night."},
   {id:"limo",img:"limo.jpg",n:"Armored limo",p:250000,s:4,pre:25,lvl:22,k:"Wheels",i:"car",t:"Windows that stop more than sunlight."},
   {id:"hyper",img:"car-hyper.jpg",n:"Hypercar",p:1800000,s:5,pre:90,lvl:34,k:"Wheels",i:"car",t:"Two seats, one exhaust note, no chance of staying quiet."},
   {id:"house",img:"house-family.jpg",n:"Family house, Runda",p:800000,s:0,pre:15,est:1,lvl:14,k:"Property",i:"home",t:"A pool, a gate, and neighbours who mind their business."},

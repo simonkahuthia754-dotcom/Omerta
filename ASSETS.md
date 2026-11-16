@@ -3,9 +3,7 @@
 This is a risk checklist, not legal advice. The code cannot tell where a picture came from, so the owner has to confirm each source.
 
 ## Removed or fixed
-- `land-l0_2` (Market Street): a photo of an identifiable woman. Removed. People's faces need their written permission.
-- `land-l3_1` (Tokyo): a photo of an identifiable woman. Not added. Use a Tokyo skyline instead.
-- `land-l0_1` (Old Quarter): had a visible "Meta AI" watermark. Removed. Add a replacement you made yourself or have a licence for.
+- Market Street, Old Quarter and Tokyo: the earlier photos (identifiable woman, watermark) were replaced with clean AI-generated scenes.
 - `biz-pawn` (Gold & Pawn): a real pawn shop with its real phone numbers and card-scheme logos. Removed.
 - `biz-corner`: Coca-Cola and newspaper logos blurred. The shop sign still shows a real shop name.
 - `biz-laundromat`: review-site logo blurred.
