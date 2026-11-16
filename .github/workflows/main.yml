@@ -40,6 +40,9 @@ jobs:
 
       - name: Build the web app
         run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL || 'https://dxexrgptaiozliaisiku.supabase.co' }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY || 'sb_publishable_Jn54RyU5sHS2y6TbAmJAqw_6sikm0Tt' }}
 
       - name: Add the Android platform
         run: npx cap add android

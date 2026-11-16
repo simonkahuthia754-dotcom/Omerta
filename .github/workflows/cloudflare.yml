@@ -1,0 +1,29 @@
+name: Deploy Cloudflare gateway
+
+on:
+  push:
+    branches: [main]
+    paths: ["cloudflare/**"]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Skip when the Cloudflare secrets are not set
+        if: ${{ env.CLOUDFLARE_API_TOKEN == '' }}
+        run: echo "CLOUDFLARE_API_TOKEN is not set, nothing to deploy." && exit 0
+      - name: Deploy the Worker
+        if: ${{ env.CLOUDFLARE_API_TOKEN != '' }}
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: cloudflare

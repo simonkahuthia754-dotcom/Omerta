@@ -1,0 +1,15 @@
+name = "omerta-gateway"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+[vars]
+SUPABASE_URL = "https://dxexrgptaiozliaisiku.supabase.co"
+# The Android app runs from https://localhost (Capacitor). Add your own origins here, separated by commas.
+ALLOWED_ORIGINS = "https://localhost,http://localhost,capacitor://localhost"
+
+# 60 requests per 60 seconds per address
+[[unsafe.bindings]]
+name = "LIMITER"
+type = "ratelimit"
+namespace_id = "1001"
+simple = { limit = 60, period = 60 }

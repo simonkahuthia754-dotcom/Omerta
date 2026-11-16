@@ -6,7 +6,7 @@ import {Social} from "./social.jsx";
 import {Economy} from "./econ.jsx";
 import {Bank} from "./bank.jsx";
 import {useWorld} from "./world.js";
-import {R,ready,watch,put,add,query,orderByChild,limitToLast,onChildAdded,serverNow} from "./live.js";
+import {R,ready,sbReady,watch,put,add,query,orderByChild,limitToLast,onChildAdded,serverNow} from "./live.js";
 import * as C from "./clean.js";
 import * as Gd from "./guard.js";
 
@@ -74,6 +74,7 @@ export default function App(){
     const save=()=>store.set(KEY,JSON.stringify(sv.current));window.addEventListener("pagehide",save);document.addEventListener("visibilitychange",save);
     return()=>{clearInterval(a);clearInterval(b);window.removeEventListener("pagehide",save)}},[]);
   useEffect(()=>{
+    if(sbReady){let rows={};return watch("omerta_chat",v=>{const l=Object.entries(v||{}).map(([k,m])=>{const c=C.chatMsg(m);return c&&C.key(k)?{...c,k}:null}).filter(Boolean).sort((a,b)=>a.timestamp-b.timestamp).slice(-60);setChat(l)})}
     let off=()=>{},dead=false;
     ready.then(()=>{if(dead)return;try{const q=query(R("omerta_chat"),orderByChild("timestamp"),limitToLast(60));
       off=onChildAdded(q,x=>{const v=C.chatMsg(x.val()),k=C.key(x.key);if(v&&k)setChat(p=>p.some(m=>m.k===k)?p:[...p.slice(-59),{...v,k}])})}catch(e){}});

@@ -1,0 +1,33 @@
+name: Security checks
+
+on:
+  push:
+    branches: [main]
+  pull_request: {}
+  schedule:
+    - cron: "17 3 * * 1"
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Known vulnerabilities in dependencies
+        run: npm install --package-lock-only --ignore-scripts && npm audit --omit=dev --audit-level=high
+        continue-on-error: true
+      - name: Secrets committed by mistake
+        run: |
+          if grep -rEn "(service_role|sb_secret_|AKIA[0-9A-Z]{16}|-----BEGIN (RSA |EC )?PRIVATE KEY)" --exclude-dir=node_modules --exclude-dir=.git --exclude=security.yml --exclude=SECURITY.md --exclude=SETUP.md . ; then echo "Possible secret found"; exit 1; fi
+  codeql:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with: { languages: javascript-typescript }
+      - uses: github/codeql-action/analyze@v3

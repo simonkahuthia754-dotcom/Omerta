@@ -1,3 +1,11 @@
+# Realtime chat on Supabase
+
+Chat, direct messages, the inbox, who is online and typing indicators run on Supabase Realtime. The tables and security rules are in `supabase/schema.sql` (already applied to the project). Set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` (GitHub: Settings > Secrets and variables > Actions > Variables). In Supabase turn on **Authentication > Sign In / Providers > Allow anonymous sign-ins**. Without it the Social tab says it could not sign in.
+
+## Cloudflare gateway (optional, recommended)
+
+`cloudflare/worker.js` sits in front of Supabase: it only lets the auth, REST and realtime paths through, only from the app's origin, caps request size, rate-limits per address and adds security headers. To use it add two GitHub secrets, `CLOUDFLARE_API_TOKEN` (Workers edit permission) and `CLOUDFLARE_ACCOUNT_ID`; the workflow deploys it on the next push to `cloudflare/`. Then set the repository variable `VITE_SUPABASE_URL` to the Worker address (`https://omerta-gateway.<you>.workers.dev`) so the app talks to the gateway. Until then the app talks to Supabase directly, which the database rules already protect.
+
 # Making chat, newspapers, shared stock and cities live
 
 The game runs without a database, but then messages, newspapers, shared stock and the world map only work on one phone ("solo mode"). To share them between players:
