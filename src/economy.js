@@ -135,5 +135,5 @@ export const landRate=l=>l.p*.0006;                 // hourly income from holdin
 export const takeoverPrice=p=>p*3;                  // buying someone out costs three times the last price
 export const landIncome=s=>Object.keys(s.land||{}).reduce((a,k)=>a+(LM[k]?landRate({p:(s.land[k].p)||LM[k].p}):0),0);
 export const ART=new Set(["re_3_3","re_3_4","lx_6_2"]);   // Grand hotel, Palace hotel
-export const LAND_ART=new Set(["l0_0","l0_3","l0_4","l0_5","l1_0","l1_1","l1_2","l1_3","l1_4","l2_0","l2_1","l2_2","l2_3","l2_4","l2_5","l3_0","l3_2","l3_3","l3_4","l4_0","l4_1","l4_2","l4_3","l4_4","l4_5","l5_3","l0_1","l0_2","l3_5","l3_6","l3_1","l4_6","l5_0","l5_1","l6_1","l7_1"]);   // places with a photo.
+export const LAND_ART=new Set(["l0_0","l0_3","l0_4","l0_5","l1_0","l1_1","l1_2","l1_3","l1_4","l2_0","l2_1","l2_2","l2_3","l2_4","l2_5","l3_0","l3_2","l3_3","l3_4","l4_0","l4_1","l4_2","l4_3","l4_4","l4_5","l5_3","l0_1","l0_2","l3_5","l3_6","l3_1","l4_6","l5_0","l5_1","l6_1","l7_1","l4_7","l5_2","l5_4","l5_5","l5_6","l5_7","l6_0","l6_2","l6_3","l6_4","l6_5","l6_6","l7_0","l7_2","l7_3","l7_4","l7_5","l7_6","l8_0"]);   // places with a photo.
 export const OFFICE_ART=new Set([1,2,3,4,5]);

@@ -1,4 +1,5 @@
 import React,{useState,useRef,useEffect} from "react";
+const SUPPORT=(u=>/^https:\/\/(www\.)?(paypal\.com|paypal\.me)\//.test(u)?u:"")(import.meta.env?.VITE_PAYPAL_URL||"");
 import * as G from "./game.js";
 import {PassportCard,CardShelf} from "./passport.jsx";
 import {Office,Territory} from "./econ.jsx";
@@ -161,6 +162,7 @@ function Coin({s,go}){
       <div className="seg">{[1000,5000,25000,100000,500000].map(x=><button key={x} className={amt===x?"on":""} onClick={()=>setAmt(x)}>{x/1000}k</button>)}</div>
       <div className="btns"><button className="btn up" onClick={()=>go({t:"buyOmc",amt})}>Buy</button>{[.25,.5,1].map(f=><button key={f} className="btn red" disabled={o.q<=0} onClick={()=>go({t:"sellOmc",frac:f})}>Sell {f*100}%</button>)}</div>
       <small className="dim">The exchange keeps 0.5% on every buy and sell. Coins sit in your wallet, not in your storage, and nobody can seize them.</small></div>
+    {SUPPORT&&<div className="panel"><a className="link" href={SUPPORT} target="_blank" rel="noopener noreferrer">Support Omerta on PayPal</a></div>}
     <Sec t="About Omerta Coin"/>
     <div className="panel"><p className="dim" style={{fontSize:14,lineHeight:1.55,marginTop:0}}>Omerta Coin copies Bitcoin. There will only ever be {(G.OMC_CAP/1e6).toFixed(0)} million of them, the supply is cut in half about every four years (next around April 2028), and the price is Bitcoin's real price. When your phone is online it reads the live price. Offline, it wanders near the last price it saw.</p></div>
   </>;

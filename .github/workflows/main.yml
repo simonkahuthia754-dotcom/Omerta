@@ -38,10 +38,14 @@ jobs:
       - name: Run the game tests
         run: npm test
 
+      - name: Fetch the Unsplash place photos
+        run: sh scripts/fetch-unsplash.sh
+
       - name: Build the web app
         run: npm run build
         env:
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL || 'https://dxexrgptaiozliaisiku.supabase.co' }}
+          VITE_PAYPAL_URL: ${{ vars.VITE_PAYPAL_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY || 'sb_publishable_Jn54RyU5sHS2y6TbAmJAqw_6sikm0Tt' }}
 
       - name: Add the Android platform
@@ -65,6 +69,28 @@ jobs:
           if ! grep -q usesCleartextTraffic "$M"; then sed -i 's/<application/<application android:usesCleartextTraffic="false"/' "$M"; fi
           grep -c 'allowBackup="false"' "$M"
 
+      - name: Sign every build with the same key (so a new build installs over the old one)
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KS_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          KS="$GITHUB_WORKSPACE/assets/signing/omerta-sideload.keystore"; PW=omerta-sideload; AL=omerta
+          if [ -n "$KS_B64" ]; then echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/own.keystore"; KS="$RUNNER_TEMP/own.keystore"; PW="$KS_PASS"; AL="$KS_ALIAS"; fi
+          G=android/app/build.gradle
+          python3 - "$G" "$KS" "$PW" "$AL" "${{ github.run_number }}" <<'PY'
+          import sys,re
+          g,ks,pw,al,n=sys.argv[1:]
+          s=open(g).read()
+          sign='signingConfigs { omerta { storeFile file("%s"); storePassword "%s"; keyAlias "%s"; keyPassword "%s" } }\n    ' % (ks,pw,al,pw)
+          s=s.replace("buildTypes {", sign+"buildTypes {",1)
+          s=re.sub(r"versionCode \d+","versionCode "+n,s)
+          s=re.sub(r'versionName "[^"]*"','versionName "1.0.'+n+'"',s)
+          s=s.replace("debug {","debug {\n            signingConfig signingConfigs.omerta",1) if "debug {" in s else s.replace("release {","debug {\n            signingConfig signingConfigs.omerta\n        }\n        release {",1)
+          open(g,"w").write(s)
+          PY
+          grep -n "signingConfig\|versionCode" "$G"
+
       - name: Sync web build into the Android project
         run: npx cap sync android
 
@@ -76,6 +102,12 @@ jobs:
         run: |
           mkdir -p renamed
           cp android/app/build/outputs/apk/debug/app-debug.apk "renamed/omerta-${{ github.run_number }}-$(date +%Y%m%d-%H%M).apk"
+
+      - name: Check the APK is signed and installable
+        run: |
+          BT=$(ls -d /usr/local/lib/android/sdk/build-tools/* | tail -1)
+          "$BT/apksigner" verify --print-certs renamed/*.apk | head -3
+          "$BT/aapt" dump badging renamed/*.apk | grep -E "package:|sdkVersion|targetSdk" 
 
       - name: Upload the APK
         uses: actions/upload-artifact@v4

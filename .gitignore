@@ -8,3 +8,4 @@ android
 keystore.properties
 serviceAccount*.json
 *.pem
+!assets/signing/*.keystore

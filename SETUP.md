@@ -28,3 +28,9 @@ The database rules now require a signed-in user. In the Firebase console open **
 - Direct-message paths can be read by anyone signed in who knows both player ids. For fully private messages the ids would need to be tied to sign-in ids.
 - For extra abuse protection turn on **App Check** with Play Integrity in the Firebase console.
 - There is no SQL in this app, so SQL injection does not apply. Text from other players is only ever shown as plain text, never as HTML.
+
+## Sentry, PayPal, Canva
+- Sentry: project `omerta` (org nexarionpril-empire). The app sends crashes through src/report.js using the public DSN. No auth token is in the app. Override with VITE_SENTRY_DSN.
+- PayPal: put a paypal.me or PayPal payment-link URL in the repo variable VITE_PAYPAL_URL and a "Support Omerta" link appears in the app. Only https paypal.com / paypal.me links are accepted. Never put PayPal client secrets in the app.
+- Unsplash: photos are fetched at build time by scripts/fetch-unsplash.sh. No Unsplash API key is needed or stored.
+- Keys that must stay secret (GitHub Actions secrets only): CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID, ANDROID_KEYSTORE_B64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS. The Supabase key in the app is the publishable key, which row-level security makes safe.

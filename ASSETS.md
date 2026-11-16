@@ -17,3 +17,6 @@ This is a risk checklist, not legal advice. The code cannot tell where a picture
 - **Real buildings and cars.** The Las Vegas hotel photos and the red sports car show real, recognisable brands. Low risk in a game, but replace them if a rights holder complains.
 - **Privacy policy.** Chat, player ids and sign-in go through Firebase. Google Play requires a privacy policy and a data-safety form.
 - **Git history.** Removed pictures stay in earlier commits. If a picture must vanish completely, rewrite history or recreate the repository.
+
+## Unsplash photos (free Unsplash licence, fetched at build time by scripts/fetch-unsplash.sh)
+Canberra Parliament House (Marcus Reubenstein), Fuji (Filiz Elaerts), Colosseum (Matteo del Piano), Paris (Ali Rizvi), Rio (Davi Costa), Kenya (Thomas Bennie), Amsterdam (Gaurav Jain), Dubai (Wael Hneini), Zanzibar (Mulberry Digital), Thai islands (Miltiadis Fragkidis), Norway fjord (Danny Rienecker), Caribbean (Shelby Cohron), Grand Canyon (Tim Hart), Hong Kong (Dan Freeman), Patagonia (Karla Robinson), Africa (Sweder Breet), Sydney (Caleb), Antarctica (Derek Oyen), Earth (ostudio). All on unsplash.com.

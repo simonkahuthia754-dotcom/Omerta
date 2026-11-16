@@ -62,7 +62,7 @@ export function Territory({s,go,W,id,name}){
         <div className="krow"><span>{T[0]}</span><small>{L<T[2]?`Level ${T[2]}`:held?`${held} held`:`${LAND.filter(p=>p.t===i).length} places`}</small></div>
         <Rail cls="cards">{LAND.filter(p=>p.t===i).map(P=>{const rec=W.land[P.id],mine=s.land&&s.land[P.id],lk=L<T[2],price=rec?takeoverPrice(rec.p):P.p;
           const they=(rec?rec.pw:0)+i*15+10,odds=Math.round((me.pw+1)/((me.pw+1)+they*1.2)*100);return(
-          <div className={"ecard land"+(lk?" lk":"")} key={P.id}>{LAND_ART.has(P.id)?<img className="eart" src={IMG("land-"+P.id+".jpg")} alt="" loading="lazy" draggable="false"/>:<div className="eart ph land" aria-hidden="true"><span>{P.n.slice(0,2)}</span></div>}
+          <div className={"ecard land"+(lk?" lk":"")} key={P.id}>{LAND_ART.has(P.id)?<img className="eart" src={IMG("land-"+P.id+".jpg")} alt="" loading="lazy" draggable="false" onError={e=>{e.currentTarget.style.visibility="hidden"}}/>:<div className="eart ph land" aria-hidden="true"><span>{P.n.slice(0,2)}</span></div>}
             <b>{P.n}</b><small className="stk">{mine?"Yours":rec?`Held by ${rec.nm}`:"Unclaimed"}</small>
             <div className="kv"><span>{rec&&!mine?"Buyout":"Price"}</span><b>{$(price)}</b></div><div className="kv"><span>Pays</span><b>{$(Math.round(landRate({p:mine?mine.p:rec?rec.p:P.p})))}/hr</b></div>
             {lk?<small className="stk">Unlocks at level {T[2]}</small>:mine?<small className="own">You hold this</small>:rec?

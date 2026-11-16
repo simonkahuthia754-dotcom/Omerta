@@ -2,11 +2,13 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App.jsx";
 import "./index.css";
+import { report, watchCrashes } from "./report.js";
+watchCrashes();
 
 class Guard extends React.Component {
   state = { err: null };
   static getDerivedStateFromError(err) { return { err }; }
-  componentDidCatch(err) { console.error(err); }
+  componentDidCatch(err) { console.error(err); report(err, "screen"); }
   render() {
     if (!this.state.err) return this.props.children;
     return (
