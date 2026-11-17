@@ -1,6 +1,6 @@
 import React,{useState,useRef,useEffect} from "react";
 import * as G from "./game.js";
-import {IMG} from "./ui.jsx";
+import {IMG,Ic} from "./ui.jsx";
 const Sec=({t,r})=><div className="sec"><h2>{t}</h2>{r&&<span>{r}</span>}</div>;
 import {SECTORS,KINDS,ITEMS_E,EM,SM,LAND,LTIERS,TIERS,shelf,landRate,takeoverPrice,ART,LAND_ART,OFFICE_ART,ecoIncome,landIncome} from "./economy.js";
 import {claimStock,claimLand} from "./world.js";
@@ -13,11 +13,12 @@ function Rail({children,cls=""}){
   return(<div className="railwrap"><button className="rarrow l" onClick={()=>by(-1)} aria-label="Scroll left">‹</button>
     <div className={"rail "+cls} ref={r}>{children}</div><button className="rarrow r" onClick={()=>by(1)} aria-label="Scroll right">›</button></div>);
 }
+const FALL={tr:["#8c1c24","car"],st:["#1f5d8a","chip"],sp:["#4b3a9c","bolt"],mi:["#b8741a","flame"],re:["#2f7d6b","home"],ag:["#5d8a2a","rose"],hf:["#b34a6b","star"],mil:["#4a5a3a","pistol"],me:["#7a2d8a","smile"],fi:["#2b7a4b","cash"],fa:["#a8431f","glass"],lx:["#9a7a2a","watch"]};
 const hash=s=>{let h=7;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h};
 // Every item gets a photo: its own if it has one, otherwise its sector's, framed differently per item.
 function Art({id,label}){
   const [bad,setBad]=useState(false),sec=id.split("_")[0],own=ART.has(id),h=hash(id);
-  if(bad)return<div className="eart ph" aria-hidden="true"><span>{(label||"?").slice(0,2)}</span></div>;
+  if(bad){const f=FALL[sec]||["#2a2218","star"];return<div className="eart ph" aria-hidden="true" style={{background:`radial-gradient(circle at ${20+h%60}% 30%,${f[0]}cc,#0d0b08 85%)`}}><Ic n={f[1]}/></div>}
   return<img className="eart" src={IMG(own?"eco-"+id+".jpg":"eco-sector-"+sec+".jpg")} style={own?undefined:{objectPosition:`${h%101}% ${(h>>7)%101}%`,transform:`scale(${1+(h%4)*.12})`}} alt="" loading="lazy" draggable="false" onError={()=>setBad(true)}/>;
 }
 const left=ms=>G.hm(ms);
