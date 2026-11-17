@@ -13,7 +13,13 @@ function Rail({children,cls=""}){
   return(<div className="railwrap"><button className="rarrow l" onClick={()=>by(-1)} aria-label="Scroll left">‹</button>
     <div className={"rail "+cls} ref={r}>{children}</div><button className="rarrow r" onClick={()=>by(1)} aria-label="Scroll right">›</button></div>);
 }
-const Art=({id,label})=>ART.has(id)?<img className="eart" src={IMG("eco-"+id+".jpg")} alt="" loading="lazy" draggable="false"/>:<div className="eart ph" aria-hidden="true"><span>{(label||"?").slice(0,2)}</span></div>;
+const hash=s=>{let h=7;for(const c of s)h=(h*31+c.charCodeAt(0))>>>0;return h};
+// Every item gets a photo: its own if it has one, otherwise its sector's, framed differently per item.
+function Art({id,label}){
+  const [bad,setBad]=useState(false),sec=id.split("_")[0],own=ART.has(id),h=hash(id);
+  if(bad)return<div className="eart ph" aria-hidden="true"><span>{(label||"?").slice(0,2)}</span></div>;
+  return<img className="eart" src={IMG(own?"eco-"+id+".jpg":"eco-sector-"+sec+".jpg")} style={own?undefined:{objectPosition:`${h%101}% ${(h>>7)%101}%`,transform:`scale(${1+(h%4)*.12})`}} alt="" loading="lazy" draggable="false" onError={()=>setBad(true)}/>;
+}
 const left=ms=>G.hm(ms);
 
 function Goods({s,go,W}){

@@ -13,7 +13,7 @@ const Lock=({l})=><span className="lockn"><Ic n="lock"/>Level {l}</span>;
 // ---------- Home ----------
 export function Home({s,go,chat,send,id}){
   const now=s.t,w=G.worth(s),xp=G.xpBar(s),b=G.board(s,now);
-  const ready=Object.keys(s.biz).reduce((a,k)=>a+G.till(s,k,now),0),trib=G.tribute(s,now),day=new Date(now).toDateString()!==s.dl.d;
+  const trib=G.tribute(s,now),day=new Date(now).toDateString()!==s.dl.d;
   const E=s.ev&&G.EM[s.ev.id];
   const reward=50000+Math.round(s.heat)*9000;
   return<>
@@ -27,9 +27,9 @@ export function Home({s,go,chat,send,id}){
     </div>
     <Sec t="Ready now"/>
     <div className="panel">
-      <div className="kv"><span>Business tills</span><b>{$(ready)}</b></div>
+      <div className="kv"><span>Businesses pay you</span><b>{$(Math.round(Object.keys(s.biz).reduce((a,k)=>a+G.BM[k].inc*s.biz[k].l*G.bonus(s),0)/2))} / 30 min</b></div>
       <div className="kv"><span>Neighborhood tribute</span><b>{$(trib)}</b></div>
-      <div className="btns"><button className="btn" onClick={()=>{go({t:"collect",id:"all"});go({t:"tribute"})}}>Collect everything</button>
+      <div className="btns"><button className="btn" onClick={()=>{go({t:"collect",id:"all"});go({t:"tribute"})}}>Collect tribute</button>
         <button className={"btn "+(day?"":"ghost")} onClick={()=>go({t:"daily"})}>{day?"Daily gift":"Gift taken"}</button></div>
     </div>
     {E&&<div className="file event"><h3>Something came up</h3><p>{G.evText(s)}</p>
@@ -97,7 +97,7 @@ export function Empire({s,go,W,id,name,page="biz",goTab}){
     <Sec t="Businesses" r={$(Object.keys(s.biz).reduce((a,k)=>a+G.BM[k].inc*s.biz[k].l*G.bonus(s),0))+" / hour"}/>
     <div className="list">{owned.map(B=>{const b=s.biz[B.id],t=G.till(s,B.id,now),uc=G.bizUpCost(B.id,b.l);return(
       <div className="biz" key={B.id}>{G.BIZ_IMG[B.id]&&<img className="bthumb" src={IMG(G.BIZ_IMG[B.id])} alt="" loading="lazy" draggable="false"/>}<div className="who"><b>{B.n}</b><small>Level {b.l} · {$(Math.round(B.inc*b.l*G.bonus(s)))}/hr{b.m?" · manager":""}</small></div>
-        <div className="btns tight"><button className="btn" disabled={t<1} onClick={()=>go({t:"collect",id:B.id})}>{$(t)}</button>
+        <div className="btns tight"><span className="tag">Pays in {G.hm(Math.max(0,G.PAY-(now-b.s)%G.PAY))}</span>
           <button className="btn ghost" disabled={b.l>=12} onClick={()=>go({t:"upBiz",id:B.id})}>Upgrade {$(uc)}</button>
           {!b.m&&<button className="btn ghost" onClick={()=>go({t:"mgr",id:B.id})}>Manager {$(B.cost*2)}</button>}</div></div>)})}
       {rest.map(B=><div className={"biz"+(L<B.lvl?" lk":"")} key={B.id}>{G.BIZ_IMG[B.id]&&<img className="bthumb" src={IMG(G.BIZ_IMG[B.id])} alt="" loading="lazy" draggable="false"/>}<div className="who"><b>{B.n}</b><small>{B.d}</small>{L<B.lvl?<small><Lock l={B.lvl}/></small>:<small>{$(B.inc)}/hr base</small>}</div>

@@ -28,5 +28,25 @@ l7_5 photo-1624138784614-87fd1b6528f8
 l7_6 photo-1551415923-31d2072bc248
 l8_0 photo-1770723965031-65f135a58636
 LIST
+# Sector photos: every item in the Economy tab shows its sector.
+while read -r id photo; do
+  [ -z "$id" ] && continue
+  out="$D/eco-sector-$id.jpg"
+  [ -s "$out" ] && continue
+  curl -fsSL --retry 3 -m 60 "https://images.unsplash.com/$photo?ixlib=rb-4.1.0&q=78&fm=jpg&w=700&h=520&fit=crop&crop=entropy&cs=srgb" -o "$out" || { echo "FAILED sector $id"; fail=1; }
+done <<'LIST2'
+tr photo-1618642624018-a370cbf3cd80
+st photo-1675602488512-bdd631490fcb
+sp photo-1700508317396-e343a69ac72f
+mi photo-1778003369751-b42b97227661
+re photo-1788129114780-0eec6ed88740
+ag photo-1563514227147-6d2ff665a6a0
+hf photo-1626315869436-d6781ba69d6e
+mil photo-1719553946838-1190abdeee92
+me photo-1785895285790-cdee03d0b2c4
+fi photo-1534469650761-fce6cc26ac0d
+fa photo-1414235077428-338989a2e8c0
+lx photo-1604242692760-2f7b0c26856d
+LIST2
 for f in $(sed -n 's/^\(l[0-9]_[0-9]\) .*/\1/p' "$0"); do [ -s "$D/land-$f.jpg" ] || fail=1; done
 exit $fail

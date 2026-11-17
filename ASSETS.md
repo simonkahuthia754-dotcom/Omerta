@@ -20,3 +20,7 @@ This is a risk checklist, not legal advice. The code cannot tell where a picture
 
 ## Unsplash photos (free Unsplash licence, fetched at build time by scripts/fetch-unsplash.sh)
 Canberra Parliament House (Marcus Reubenstein), Fuji (Filiz Elaerts), Colosseum (Matteo del Piano), Paris (Ali Rizvi), Rio (Davi Costa), Kenya (Thomas Bennie), Amsterdam (Gaurav Jain), Dubai (Wael Hneini), Zanzibar (Mulberry Digital), Thai islands (Miltiadis Fragkidis), Norway fjord (Danny Rienecker), Caribbean (Shelby Cohron), Grand Canyon (Tim Hart), Hong Kong (Dan Freeman), Patagonia (Karla Robinson), Africa (Sweder Breet), Sydney (Caleb), Antarctica (Derek Oyen), Earth (ostudio). All on unsplash.com.
+
+## Economy sector photos (Unsplash, free licence)
+Downloaded in CI by `scripts/fetch-unsplash.sh` to `public/img/eco-sector-<id>.jpg`.
+Transport: zero take. Science & Tech: Bermix Studio. Space: nader saremi. Mining & Energy: Erwin Bosman. Real estate: Pavlo Antonio. Agriculture: Dan Meyers. Helping foundations: Acton Crawford. Military: Abdullah Al Hasan. Media: aryatama045. Finance: Aditya Vyas. Food & hospitality: Jay Wennington. Fashion & luxury: Amin Hasani.

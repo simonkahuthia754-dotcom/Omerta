@@ -30,3 +30,9 @@ s.bk=1e7;s.bi=[];for(let i=0;i<10;i++)R({t:"invest",id:"fund",amt:20000},n+i);ok
 const old=g.fresh(T0);delete old.bk;delete old.bi;store[g.KEY]=JSON.stringify(old);const m=g.load();ok(m.bk===0&&Array.isArray(m.bi),"old save migrates");
 ok(["corner","laundromat","restaurant","warehouse"].every(k=>g.BIZ_IMG[k]),"business photos mapped (pawn shop photo removed on purpose)");
 ok(new Set(Object.values(g.BIZ_IMG).concat(g.BANK_IMG)).size===Object.values(g.BIZ_IMG).length+1,"no photo used twice");
+{const T=Date.UTC(2026,0,2,6);let q=g.fresh(T);q.cash=0;q.biz={corner:{l:1,s:T}};
+const step=m=>{q=g.reduce(q,{t:"tick",now:T+m*60000})};
+step(0);const c0=q.cash;step(10);ok(q.cash===c0,"business pays nothing before 30 minutes");
+step(31);ok(q.cash-c0===300,"business pays half an hour of income into cash");
+const c=q.cash;step(40);ok(q.cash===c,"no second payout until the next 30 minutes");
+step(62);ok(q.cash>c,"next payout lands");}

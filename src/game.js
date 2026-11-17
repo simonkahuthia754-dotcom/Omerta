@@ -51,7 +51,7 @@ export const ITEMS=[
   {id:"nine",img:"gun-9mm.jpg",n:"Compact 9mm",p:1200,s:1,pre:2,lvl:3,k:"Cellar",i:"pistol",w:1,t:"Matte black, nothing to look at. That is the point."},
   {id:"pistol",img:"pistol.png",n:"Gold pistol",p:2500,s:1,pre:3,lvl:6,k:"Cellar",i:"pistol",w:1,t:"For show. Mostly."},
   {id:"lupara",img:"item-lupara.jpg",n:"Lupara shotgun",p:7000,s:2,pre:3,lvl:9,k:"Cellar",i:"pistol",w:1,t:"Sawn-off, the old way. Family heirloom."},
-  {id:"tommy",n:"Tommy gun",p:45000,s:2,pre:12,lvl:18,k:"Cellar",i:"pistol",w:1,t:"Drum magazine. Subtle it is not."},
+  {id:"tommy",img:"badge-guns.jpg",n:"Tommy gun",p:45000,s:2,pre:12,lvl:18,k:"Cellar",i:"pistol",w:1,t:"Drum magazine. Subtle it is not."},
   {id:"bag",img:"item-bag.jpg",n:"Designer handbag",p:9000,s:1,pre:3,g:10,lvl:8,k:"For them",i:"bag",t:"Comes in its own dust bag. Has its own dust bag."},
   {id:"case",img:"item-case.jpg",n:"Briefcase",p:10000,s:1,pre:3,lvl:10,k:"Cellar",i:"case",t:"Nobody asks what's inside."},
   {id:"car",img:"car-sport.jpg",n:"Sports car",p:50000,s:3,pre:10,lvl:12,k:"Wheels",i:"car",t:"Fast, and very easy to spot."},
@@ -244,6 +244,7 @@ export const stars=(s,id)=>{const n=s.jobs[id]||0;return n>=80?3:n>=30?2:n>=10?1
 export const jobFail=(s,J)=>Math.max(3,J.r-power(s)*.12-stars(s,J.id)*2);
 export const heistFail=(s,H,ap)=>Math.max(5,H.r+{quiet:-8,loud:12,inside:-16}[ap]-Math.min(10,power(s)/H.sol*3));
 export const heistCost=H=>Math.round((H.p[0]+H.p[1])/2*.12);
+export const PAY=30*60000;
 export const till=(s,id,now)=>{const b=s.biz[id];return b?Math.floor(BM[id].inc*b.l*Math.min((now-b.s)/H,b.m?24:8)*bonus(s)):0};
 export const tributeRate=s=>DIST.reduce((a,d)=>a+s.dist[d.id]*d.v,0)*bonus(s);
 export const tribute=(s,now)=>Math.floor(tributeRate(s)*Math.min((now-s.ts)/H,12));
@@ -330,7 +331,10 @@ function spawn(s,now){
 }
 function tick(s,now){
   const dt=Math.max(0,now-s.t)/H;s.t=now;
-  {const tot=(ecoIncome(s)+landIncome(s))*Math.min(dt,12)*bonus(s)+(s.frac||0),w=Math.floor(tot);if(w>0)s.cash+=w;s.frac=tot-w}
+  {let biz=0,hh=0;const bn=bonus(s);for(const id in s.biz){const b=s.biz[id],B=BM[id];if(!b||!B)continue;const n=Math.floor((now-b.s)/PAY);if(n<1)continue;const k=Math.min(n,(b.m?24:8)*2);   // each business pays into your cash every 30 minutes
+    biz+=B.inc*b.l*k*.5*bn;hh+=B.heat*b.l*k*.5*.15;b.s=k<n?now:b.s+n*PAY}
+   s.heat=Math.min(100,s.heat+hh);
+   const tot=(ecoIncome(s)+landIncome(s))*Math.min(dt,12)*bn+biz+(s.frac||0),w=Math.floor(tot);if(w>0)s.cash+=w;s.frac=tot-w}
   if(s.bk>0)s.bk+=s.bk*BANK_RATE*Math.min(dt,12);
   s.heat=Math.max(0,s.heat-dt*3);
   const mx=enMax(s);

@@ -14,7 +14,7 @@ const store={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},s
 const ID={id:C.id((store.get("omerta_id")||"").toUpperCase())||"OM-"+Math.random().toString(36).slice(2,6).toUpperCase(),name:C.name(store.get("omerta_name"))||"DON_V"};
 store.set("omerta_id",ID.id);store.set("omerta_name",ID.name);
 
-const TABS=[["home","Home","home"],["jobs","Work","case"],["empire","Empire","map"],["office","Office","suit"],["cities","Cities","boat"],["bank","Bank","cash"],["markets","Markets","trend"],["economy","Economy","star"],["social","Social","cell"],["life","Life","glass"]];
+const TABS=[["home","Home","t_home"],["jobs","Work","t_jobs"],["empire","Empire","t_empire"],["office","Office","t_office"],["cities","Cities","t_cities"],["bank","Bank","t_bank"],["markets","Markets","t_markets"],["economy","Economy","t_economy"],["social","Social","t_social"],["life","Life","t_life"]];
 const KEYS=["1","2","3","4","5","6","7","8","9","Clear","0","Delete"];
 
 function useKeyboard(){
@@ -89,11 +89,12 @@ export default function App(){
   const send=({text})=>add("omerta_chat",{username:ID.name,uid:ID.id,flag:"🇰🇪",text:C.text(text,300),timestamp:serverNow()});
   const rename=n=>{n=n.replace(/[^\w ]/g,"").trim().slice(0,16).replace(/ /g,"_");if(n.length<3)return;ID.name=n;store.set("omerta_name",n);setNm(n);put("omerta_online/"+ID.id,{n,t:serverNow()})};
   const W=useWorld(ID.id,s,go,nm);
+  const sideways=el=>{for(;el&&el!==document.body;el=el.parentElement){if(/^(TEXTAREA|INPUT)$/.test(el.tagName)||el.matches&&el.matches(".chart,.msgs,.composer,.pad"))return true;if(el.scrollWidth>el.clientWidth+4&&/(auto|scroll)/.test(getComputedStyle(el).overflowX))return true}return false};
   const swipe=useRef(null),bar=useRef(null);
   useEffect(()=>{const b=bar.current,a=b&&b.querySelector(".on");if(a)b.scrollTo({left:a.offsetLeft-b.clientWidth/2+a.clientWidth/2,behavior:"smooth"})},[tab]);
-  const ts=e=>{const x=e.touches[0];swipe.current=e.target.closest&&e.target.closest(".rail,.chart,textarea,input,.msgs,.composer,.pad")?null:[x.clientX,x.clientY]};
+  const ts=e=>{const x=e.touches[0];swipe.current=sideways(e.target)?null:[x.clientX,x.clientY]};
   const te=e=>{const a=swipe.current;swipe.current=null;if(!a)return;const x=e.changedTouches[0],dx=x.clientX-a[0],dy=x.clientY-a[1];
-    if(Math.abs(dx)>90&&Math.abs(dy)<45){const i=TABS.findIndex(q=>q[0]===tab),n=i+(dx<0?1:-1);if(TABS[n])setTab(TABS[n][0])}};
+    if(Math.abs(dx)>110&&Math.abs(dy)<Math.abs(dx)/3){const i=TABS.findIndex(q=>q[0]===tab),n=i+(dx<0?1:-1);if(TABS[n])setTab(TABS[n][0])}};
   const P={goTab:setTab,W,s,go,chat,send,net,inbox,rename,id:ID.id,name:nm},scr=useRef(null);
   useEffect(()=>{if(scr.current)scr.current.scrollTop=0},[tab]);
   return(
